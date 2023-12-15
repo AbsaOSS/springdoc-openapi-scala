@@ -26,7 +26,7 @@ This library aims to avoid pollution of the model by custom annotations and depe
 ### Provided dependencies
 The library has `"org.springdoc" % "springdoc-openapi-webmvc-core"` as a provided dependency, 
 thus users of the library have to include that dependency in their projects.
-Currently only version `1.7.0` is supported.
+Versions `1.6.7` up to `1.7.0` (including) are supported.
 
 ### Add library dependency to SBT/Maven
 SBT:

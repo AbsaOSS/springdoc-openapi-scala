@@ -24,7 +24,7 @@ object Dependencies {
 
     val scalatest = "3.2.15"
 
-    val springdocOpenapi = "1.7.0"
+    val springdocOpenapi = "[1.6.7,1.7.0]"
 
     val springBoot = "2.6.6"
   }
