@@ -23,5 +23,5 @@ ThisBuild / versionScheme := Some("early-semver")
 lazy val root = (project in file("."))
   .settings(
     name := "springdoc-openapi-scala",
-    libraryDependencies ++= dependencyList(scalaVersion.value, Versions.springdocOpenapi)
+    libraryDependencies ++= dependencyList(scalaVersion.value)
   )
