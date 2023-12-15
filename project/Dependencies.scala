@@ -25,14 +25,24 @@ object Dependencies {
     val scalatest = "3.2.15"
 
     val springdocOpenapi = "1.7.0"
+
+    val springBoot = "2.6.6"
   }
 
-  def dependencyList(scalaVersion: String): Seq[ModuleID] = {
+  def libraryDependencyList(scalaVersion: String): Seq[ModuleID] = {
     List(
       "org.scala-lang" % "scala-reflect" % scalaVersion,
       "org.springdoc" % "springdoc-openapi-webmvc-core" % Versions.springdocOpenapi % Provided,
       "org.scalatest" %% "scalatest" % Versions.scalatest % Test,
       "org.scalatest" %% "scalatest-flatspec" % Versions.scalatest % Test
+    )
+  }
+
+  def exampleProjectsDependencyList: Seq[ModuleID] = {
+    List(
+      "org.springframework.boot" % "spring-boot-starter-web" % Versions.springBoot,
+      "org.springframework.boot" % "spring-boot-starter-tomcat" % Versions.springBoot,
+      "org.springdoc" % "springdoc-openapi-webmvc-core" % Versions.springdocOpenapi
     )
   }
 
