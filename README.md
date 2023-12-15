@@ -38,10 +38,11 @@ Maven:
 ```xml
 <dependency>
    <groupId>za.co.absa</groupId>
-   <artifactId>springdoc-openapi-scala_2.12</artifactId>
+   <artifactId>springdoc-openapi-scala_{scala_binary_version}</artifactId>
    <version>${version}</version>
 </dependency>
 ```
+where `scala_binary_version` is either `2.12` or `2.13`.
 
 ### Create custom OpenAPI Spring Configuration
 ```scala
