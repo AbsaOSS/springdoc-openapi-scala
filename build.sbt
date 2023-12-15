@@ -23,16 +23,12 @@ ThisBuild / versionScheme := Some("early-semver")
 lazy val root = (project in file("."))
   .settings(
     name := "springdoc-openapi-scala",
-    libraryDependencies ++= dependencyList(scalaVersion.value)
+    libraryDependencies ++= libraryDependencyList(scalaVersion.value)
   )
 
 lazy val simpleExample = (project in file("examples/simple"))
   .settings(
-    libraryDependencies ++= Seq(
-      "org.springframework.boot" % "spring-boot-starter-web" % "2.6.6",
-      "org.springframework.boot" % "spring-boot-starter-tomcat" % "2.6.6",
-      "org.springdoc" % "springdoc-openapi-webmvc-core" % Versions.springdocOpenapi
-    ),
+    libraryDependencies ++= exampleProjectsDependencyList,
     webappWebInfClasses := true,
     inheritJarManifest := true
   )
