@@ -20,10 +20,13 @@ ThisBuild / organization := "za.co.absa"
 ThisBuild / scalaVersion := Versions.scala212
 ThisBuild / versionScheme := Some("early-semver")
 
+lazy val supportedScalaVersions = List(Versions.scala212, Versions.scala213)
+
 lazy val root = (project in file("."))
   .settings(
     name := "springdoc-openapi-scala",
-    libraryDependencies ++= libraryDependencyList(scalaVersion.value)
+    libraryDependencies ++= libraryDependencyList(scalaVersion.value),
+    crossScalaVersions := supportedScalaVersions
   )
 
 lazy val simpleExample = (project in file("examples/simple"))
