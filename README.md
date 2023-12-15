@@ -22,8 +22,25 @@ This library aims to avoid pollution of the model by custom annotations and depe
 
 ## Usage
 
-### Add dependency to SBT/Maven
-TBA
+### Provided dependencies
+The library has `"org.springdoc" % "springdoc-openapi-webmvc-core"` as a provided dependency, 
+thus users of the library have to include that dependency in their projects.
+Currently only version `1.7.0` is supported.
+
+### Add library dependency to SBT/Maven
+SBT:
+```sbt
+libraryDependencies ++= Seq("za.co.absa" %% "springdoc-openapi-scala" % VERSION)
+```
+
+Maven:
+```xml
+<dependency>
+   <groupId>za.co.absa</groupId>
+   <artifactId>springdoc-openapi-scala_2.12</artifactId>
+   <version>${version}</version>
+</dependency>
+```
 
 ### Create custom OpenAPI Spring Configuration
 ```scala
