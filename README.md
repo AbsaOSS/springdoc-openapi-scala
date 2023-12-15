@@ -5,7 +5,7 @@ An enhancement to [springdoc-openapi](https://github.com/springdoc/springdoc-ope
 ## Motivation
 Scala isn't well-supported in springdoc-openapi by default, for example:
 - `case class` parameters are not recognized by default, one has to add something like `@BeanProperty` to each
-- even with `@BeanProperty`, most parameters with generic type (like `Option`) doesn't work correctly
+- even with `@BeanProperty`, most parameters with generic type (like `Option`) don't work correctly
 - even with `@BeanProperty`, all parameters are marked as not required in generated OpenAPI docs
 - Spring endpoints returning `Unit` are not "No Content" but instead show that the endpoint returns `BoxedUnit`
 
