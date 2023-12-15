@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
-addSbtPlugin("org.jetbrains.scala" % "sbt-ide-settings" % "1.1.1")
-addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "4.2.4")
+package za.co.absa.springdocopenapiscala.examples.simple.model
+
+case class ExampleModelRequest(a: Int, b: String, c: Option[Int])

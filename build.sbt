@@ -25,3 +25,16 @@ lazy val root = (project in file("."))
     name := "springdoc-openapi-scala",
     libraryDependencies ++= dependencyList(scalaVersion.value)
   )
+
+lazy val simpleExample = (project in file("examples/simple"))
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.springframework.boot" % "spring-boot-starter-web" % "2.6.6",
+      "org.springframework.boot" % "spring-boot-starter-tomcat" % "2.6.6",
+      "org.springdoc" % "springdoc-openapi-webmvc-core" % Versions.springdocOpenapi
+    ),
+    webappWebInfClasses := true,
+    inheritJarManifest := true
+  )
+  .enablePlugins(TomcatPlugin)
+  .dependsOn(root)
