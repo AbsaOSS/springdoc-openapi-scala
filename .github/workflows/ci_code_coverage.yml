@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  code_coverage:
     name: CI check JaCoCo code-coverage
     runs-on: ubuntu-latest
     steps:
@@ -15,7 +15,7 @@ jobs:
         uses: olafurpg/setup-scala@v14
         with:
           java-version: "adopt@1.8"
-      - name: Build and run tests
+      - name: Build, run tests, and generate Jacoco code coverage report
         run: sbt ++2.12.18 jacoco
       - name: Add coverage to PR
         id: jacoco
@@ -26,7 +26,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 0.0
           min-coverage-changed-files: 80.0
-          title: JaCoCo code coverage report - SpringDoc OpenAPI
+          title: JaCoCo code coverage report - springdoc-openapi-scala
           update-comment: true
           debug-mode: true
       - name: Get the Coverage info

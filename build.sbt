@@ -35,8 +35,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "springdoc-openapi-scala",
     libraryDependencies ++= libraryDependencyList(scalaVersion.value),
-    crossScalaVersions := supportedScalaVersions
-  ).settings(
+    crossScalaVersions := supportedScalaVersions,
     jacocoReportSettings := commonJacocoReportSettings.withTitle(s"SpringDoc OpenApi - scala:${scalaVersion.value}"),
     jacocoExcludes := commonJacocoExcludes
   )
