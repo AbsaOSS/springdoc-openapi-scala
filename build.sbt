@@ -36,6 +36,9 @@ lazy val root = (project in file("."))
     name := "springdoc-openapi-scala",
     libraryDependencies ++= libraryDependencyList(scalaVersion.value),
     crossScalaVersions := supportedScalaVersions
+  ).settings(
+    jacocoReportSettings := commonJacocoReportSettings.withTitle(s"SpringDoc OpenApi - scala:${scalaVersion.value}"),
+    jacocoExcludes := commonJacocoExcludes
   )
 
 lazy val simpleExample = (project in file("examples/simple"))
@@ -43,9 +46,6 @@ lazy val simpleExample = (project in file("examples/simple"))
     libraryDependencies ++= exampleProjectsDependencyList,
     webappWebInfClasses := true,
     inheritJarManifest := true
-  ).settings(
-    jacocoReportSettings := commonJacocoReportSettings.withTitle(s"SpringDoc OpenApi Scala - scala:${scalaVersion.value}"),
-    jacocoExcludes := commonJacocoExcludes
   )
   .enablePlugins(TomcatPlugin)
   .dependsOn(root)

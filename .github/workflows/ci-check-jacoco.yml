@@ -22,7 +22,7 @@ jobs:
         uses: madrapps/jacoco-report@v1.6.1
         with:
           paths: >
-            ${{ github.workspace }}/testApi/target/scala-2.13/jacoco/report/jacoco.xml
+            ${{ github.workspace }}/target/scala-2.12/jacoco/report/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 0.0
           min-coverage-changed-files: 80.0
