@@ -15,12 +15,21 @@
  */
 
 import Dependencies._
+import com.github.sbt.jacoco.report.JacocoReportSettings
 
 ThisBuild / organization := "za.co.absa"
 ThisBuild / scalaVersion := Versions.scala212
 ThisBuild / versionScheme := Some("early-semver")
 
 lazy val supportedScalaVersions = List(Versions.scala212, Versions.scala213)
+
+lazy val commonJacocoReportSettings: JacocoReportSettings = JacocoReportSettings(
+  formats = Seq(JacocoReportFormats.HTML, JacocoReportFormats.XML)
+)
+
+lazy val commonJacocoExcludes: Seq[String] = Seq(
+//  "za.co.absa.springdocopenapiscala.*"
+)
 
 lazy val root = (project in file("."))
   .settings(
@@ -34,6 +43,9 @@ lazy val simpleExample = (project in file("examples/simple"))
     libraryDependencies ++= exampleProjectsDependencyList,
     webappWebInfClasses := true,
     inheritJarManifest := true
+  ).settings(
+    jacocoReportSettings := commonJacocoReportSettings.withTitle(s"SpringDoc OpenApi Scala - scala:${scalaVersion.value}"),
+    jacocoExcludes := commonJacocoExcludes
   )
   .enablePlugins(TomcatPlugin)
   .dependsOn(root)

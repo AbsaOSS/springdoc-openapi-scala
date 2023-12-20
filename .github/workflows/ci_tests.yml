@@ -30,10 +30,10 @@ jobs:
     name: Scala ${{matrix.scala}}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.1
       - uses: coursier/cache-action@v6
       - name: Setup Scala
-        uses: olafurpg/setup-scala@v11
+        uses: olafurpg/setup-scala@v14
         with:
           java-version: "adopt@1.8"
       - name: Build and run tests
