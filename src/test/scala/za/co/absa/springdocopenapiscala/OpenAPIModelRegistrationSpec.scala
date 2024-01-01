@@ -76,6 +76,40 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     b: Map[Int, Arrays]
   )
 
+  object Things extends Enumeration {
+    type Thing = Value
+
+    val Pizza, TV, Radio = Value
+  }
+
+  object DifferentThing extends Enumeration {
+    type DifferentThing = Value
+
+    val Cleaner = Value
+    val Floor = Value
+
+    val unrelated = "something that is not related to enum"
+
+    def unrelatedDef: Int = 123
+  }
+
+  object ThingsWithRenaming extends Enumeration {
+    type ThingWithRenaming = Value
+
+    val Pizza = Value("PIZZA")
+    val TV = Value("TV")
+    val Radio = Value("RADIO")
+  }
+
+  private case class SimpleEnums(
+    a: Things.Thing,
+    b: DifferentThing.DifferentThing
+  )
+
+  private case class EnumsWithRenaming(
+    a: ThingsWithRenaming.ThingWithRenaming
+  )
+
   behavior of "register"
 
   it should "add schema of a case class that contain fields with simple types to injected components" in {
@@ -171,6 +205,29 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     assertTypeAndFormatAreAsExpected(actualSchemas, "Maps.b", "object")
   }
 
+  it should "make simple Enumeration (without renaming) an OpenAPI enum" in {
+    val components = new Components
+    val openAPIModelRegistration = new OpenAPIModelRegistration(components)
+
+    openAPIModelRegistration.register[SimpleEnums]()
+
+    val actualSchemas = components.getSchemas
+
+    assertEnumIsStringAndHasFollowingOptions(actualSchemas, "SimpleEnums.a", Set("Pizza", "TV", "Radio"))
+    assertEnumIsStringAndHasFollowingOptions(actualSchemas, "SimpleEnums.b", Set("Cleaner", "Floor"))
+  }
+
+  it should "make complex Enumeration (with renaming) an OpenAPI enum" ignore { // TODO: #23
+    val components = new Components
+    val openAPIModelRegistration = new OpenAPIModelRegistration(components)
+
+    openAPIModelRegistration.register[EnumsWithRenaming]()
+
+    val actualSchemas = components.getSchemas
+
+    assertEnumIsStringAndHasFollowingOptions(actualSchemas, "EnumsWithRenaming.a", Set("PIZZA", "TV", "RADIO"))
+  }
+
   private def assertTypeAndFormatAreAsExpected(
     actualSchemas: java.util.Map[String, Schema[_]],
     fieldPath: String,
@@ -200,6 +257,16 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     actualSchemas,
     fieldPath,
     schema => schema.getType === "array" && schema.getItems.getType === expectedType
+  )
+
+  private def assertEnumIsStringAndHasFollowingOptions(
+    actualSchemas: java.util.Map[String, Schema[_]],
+    fieldPath: String,
+    expectedEnumOptions: Set[String]
+  ): scalatest.Assertion = assertPredicateForPath(
+    actualSchemas,
+    fieldPath,
+    schema => schema.getType === "string" && schema.getEnum.asScala.toSet == expectedEnumOptions
   )
 
   private def assertPredicateForPath(
