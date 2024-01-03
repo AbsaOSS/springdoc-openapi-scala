@@ -67,7 +67,7 @@ class OpenAPIModelRegistration(components: Components) {
     case t if t <:< typeOf[Option[_]]                                      => handleType(t.typeArgs.head)
     case t if t <:< typeOf[Seq[_]] || t <:< typeOf[Array[_]]               => handleSeqLike(t)
     case t if t <:< typeOf[Set[_]]                                         => handleSet(t)
-    case t if t <:< typeOf[Enumeration#Value]                              => handleEnum(tpe)
+    case t if t <:< typeOf[Enumeration#Value]                              => handleEnum(t)
     case t                                                                 => handleSimpleType(t)
   }
 
