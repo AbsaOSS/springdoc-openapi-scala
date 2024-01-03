@@ -217,7 +217,8 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     assertEnumIsStringAndHasFollowingOptions(actualSchemas, "SimpleEnums.b", Set("Cleaner", "Floor"))
   }
 
-  it should "make complex Enumeration (with renaming) an OpenAPI enum" ignore { // TODO: #23
+  // this test ignored as current implementation doesn't pass it, to be enabled in #23
+  it should "make complex Enumeration (with renaming) an OpenAPI enum" ignore {
     val components = new Components
     val openAPIModelRegistration = new OpenAPIModelRegistration(components)
 
