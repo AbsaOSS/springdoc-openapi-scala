@@ -30,6 +30,6 @@ jobs:
       - name: Setup Scala
         uses: olafurpg/setup-scala@v14
         with:
-          java-version: "adopt@17"
+          java-version: "openjdk@1.17.0"
       - name: Build and run tests
         run: sbt clean test
