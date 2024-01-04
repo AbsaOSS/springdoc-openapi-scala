@@ -17,11 +17,11 @@
 package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.{Components, OpenAPI}
-import org.springdoc.core.customizers.OpenApiCustomiser
+import za.co.absa.springdocopenapiscala.SpringdocOpenAPIVersionSpecificTypes.OpenApiCustomizer
 
 import scala.collection.JavaConverters._
 
-class OpenAPISScalaCustomizer(components: Components) extends OpenApiCustomiser {
+class OpenAPISScalaCustomizer(components: Components) extends OpenApiCustomizer {
 
   override def customise(openAPIOutOfSync: OpenAPI): Unit = {
     // this is needed as for some reason springdoc-openapi cache the `OpenAPI` at the beginning

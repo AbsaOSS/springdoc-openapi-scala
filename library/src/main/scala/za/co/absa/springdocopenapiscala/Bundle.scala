@@ -17,21 +17,22 @@
 package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.{Components, OpenAPI}
-import org.springdoc.core.customizers.OpenApiCustomiser
+
+import za.co.absa.springdocopenapiscala.SpringdocOpenAPIVersionSpecificTypes._
 
 /**
- * Glues all components of `springdoc-openapi-scala` together
- * and enables additional customization (for example to set info).
+ *  Glues all components of `springdoc-openapi-scala` together
+ *  and enables additional customization (for example to set info).
  *
- * @param extraOpenAPICustomizers additional customizers that are executed after [[OpenAPISScalaCustomizer]]
+ *  @param extraOpenAPICustomizers additional customizers that are executed after [[OpenAPISScalaCustomizer]]
  */
-class Bundle(extraOpenAPICustomizers: Seq[OpenApiCustomiser] = Seq.empty) {
+class Bundle(extraOpenAPICustomizers: Seq[OpenApiCustomizer] = Seq.empty) {
 
   private val components = new Components
 
   val modelRegistration: OpenAPIModelRegistration = new OpenAPIModelRegistration(components)
 
-  val customizer: OpenApiCustomiser = {
+  val customizer: OpenApiCustomizer = {
     val openAPISScalaCustomizer = new OpenAPISScalaCustomizer(components)
 
     (openApi: OpenAPI) => (openAPISScalaCustomizer +: extraOpenAPICustomizers).foreach(_.customise(openApi))

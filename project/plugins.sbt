@@ -15,6 +15,7 @@
  */
 
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.12")
+addSbtPlugin("com.eed3si9n" % "sbt-projectmatrix" % "0.9.2")
 
 addSbtPlugin("org.jetbrains.scala" % "sbt-ide-settings" % "1.1.1")
 addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "4.2.4")
