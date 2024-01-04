@@ -20,6 +20,7 @@ This library aims to avoid pollution of the model by custom annotations and depe
 - Spring endpoints returning Unit are "No Content"
 - support for basic Scala collections (`Map`, `Seq`, `Set`, `Array`) as types of `case class` parameters
 - only top-level case classes need to be registered, child case classes are then recursively registered
+- support for Scala `Enumeration` where simple `Value` constructor is used (without `name`)
 
 ## Usage
 
