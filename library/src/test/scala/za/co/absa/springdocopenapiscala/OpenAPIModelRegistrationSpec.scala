@@ -118,11 +118,12 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
   sealed abstract class SealedAbstractClass
 
-  private case class SealedAbstractClassVariant1(a: String) extends SealedAbstractClass
+  private case object SealedAbstractClassCaseObject extends SealedAbstractClass
+  private case class SealedAbstractClassVariant(a: String) extends SealedAbstractClass
 
-  private case class SealedAbstractClassVariant2(a: Int) extends SealedAbstractClass
+  private case class SumTypeClass(a: SealedTrait)
 
-  private case class SumTypeClass(a: SealedTrait, b: SealedAbstractClass)
+  private case class SumTypeClassWithSealedAbstractClass(a: SealedAbstractClass)
 
   sealed private trait EmptySealedTrait
 
@@ -258,9 +259,6 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     assertTypeAndFormatAreAsExpected(actualSchemas, "SealedTraitVariant1.a", "string")
     assertTypeAndFormatAreAsExpected(actualSchemas, "SealedTraitVariant2.a", "integer",
       Some("int32"))
-    assertTypeAndFormatAreAsExpected(actualSchemas, "SealedAbstractClassVariant1.a", "string")
-    assertTypeAndFormatAreAsExpected(actualSchemas, "SealedAbstractClassVariant2.a", "integer",
-      Some("int32"))
 
     assertPredicateForPath(
       actualSchemas,
@@ -274,14 +272,28 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
         actualOneOf === expectedOneOf
       }
     )
+  }
+
+  it should "make sealed abstract class with case object an OpenAPI schema with the oneOf attribute" in {
+    val components = new Components
+    val openAPIModelRegistration = new OpenAPIModelRegistration(components)
+
+    openAPIModelRegistration.register[SumTypeClassWithSealedAbstractClass]()
+
+    val actualSchemas = components.getSchemas
+
+    assertTypeAndFormatAreAsExpected(actualSchemas,"SealedAbstractClassVariant.a", "string")
+    assert(actualSchemas.containsKey("SealedAbstractClassCaseObject"))
+    assert(Option(actualSchemas.get("SealedAbstractClassCaseObject").getProperties).isEmpty)
+
     assertPredicateForPath(
       actualSchemas,
-      "SumTypeClass.b",
+      "SumTypeClassWithSealedAbstractClass.a",
       schema => {
         val actualOneOf = schema.getOneOf.asScala
         val expectedOneOf = Seq(
-          new Schema().$ref("#/components/schemas/SealedAbstractClassVariant1"),
-          new Schema().$ref("#/components/schemas/SealedAbstractClassVariant2")
+          new Schema().$ref("#/components/schemas/SealedAbstractClassCaseObject"),
+          new Schema().$ref("#/components/schemas/SealedAbstractClassVariant")
         )
         actualOneOf === expectedOneOf
       }
