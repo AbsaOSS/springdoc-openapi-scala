@@ -23,6 +23,7 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe._
 
 class OpenAPIModelRegistration(components: Components) {
@@ -59,7 +60,6 @@ class OpenAPIModelRegistration(components: Components) {
   }
 
   private case class OpenAPISimpleType(tpe: String, format: Option[String] = None)
-
   @tailrec
   private def handleType(tpe: Type): Schema[_] = tpe.dealias match {
     case t if tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass => handleCaseClass(t)
@@ -68,6 +68,7 @@ class OpenAPIModelRegistration(components: Components) {
     case t if t <:< typeOf[Seq[_]] || t <:< typeOf[Array[_]]               => handleSeqLike(t)
     case t if t <:< typeOf[Set[_]]                                         => handleSet(t)
     case t if t <:< typeOf[Enumeration#Value]                              => handleEnum(t)
+    case t if t.typeSymbol.isClass && t.typeSymbol.asClass.isSealed        => handleSealedType(t)
     case t                                                                 => handleSimpleType(t)
   }
 
@@ -122,6 +123,15 @@ class OpenAPIModelRegistration(components: Components) {
 
   private def isSymbolEnumerationValue(s: Symbol): Boolean =
     s.isTerm && s.asTerm.isVal && s.typeSignature <:< typeOf[Enumeration#Value]
+
+  private def handleSealedType(tpe: Type): Schema[_] = {
+    val classSymbol = tpe.typeSymbol.asClass
+    val children = classSymbol.knownDirectSubclasses
+    val childrenSchemas = children.map(_.asType.toType).map(handleType)
+    val schema = new Schema
+    schema.setOneOf(childrenSchemas.toList.asJava)
+    schema
+  }
 
   private def handleSimpleType(tpe: Type): Schema[_] = {
     val schema = new Schema
