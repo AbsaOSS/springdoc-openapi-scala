@@ -22,7 +22,7 @@ jobs:
         uses: madrapps/jacoco-report@v1.6.1
         with:
           paths: >
-            ${{ github.workspace }}/target/1-jvm-2.12/jacoco/report/jacoco.xml
+            ${{ github.workspace }}/library/target/1-jvm-2.12/jacoco/report/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 0.0
           min-coverage-changed-files: 80.0
@@ -34,7 +34,7 @@ jobs:
         uses: madrapps/jacoco-report@v1.6.1
         with:
           paths: >
-            ${{ github.workspace }}/target/2-jvm-2.12/jacoco/report/jacoco.xml
+            ${{ github.workspace }}/library/target/2-jvm-2.12/jacoco/report/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 0.0
           min-coverage-changed-files: 80.0
