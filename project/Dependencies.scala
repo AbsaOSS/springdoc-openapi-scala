@@ -26,11 +26,8 @@ object Dependencies {
 
     def springdocOpenapi(majorVersion: Int): String = majorVersion match {
       case 1 => "[1.6.7,1.7.0]"
-      case 2 => "2.0.0"
+      case 2 => "[2.0.0,2.3.0]"
     }
-
-    val springBoot2 = "2.6.6"
-    val springBoot3 = "3.0.4"
   }
 
   def libraryDependencyList(springdocOpenAPIMajorVersion: Int, scalaVersion: String): Seq[ModuleID] = {
