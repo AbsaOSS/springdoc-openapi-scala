@@ -17,8 +17,14 @@
 package za.co.absa.springdocopenapiscala.examples.simple.controller
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.{PostMapping, RequestBody, RequestMapping, RestController}
+import org.springframework.http.{HttpStatus, MediaType, ResponseEntity}
+import org.springframework.web.bind.annotation.{
+  PostMapping,
+  RequestBody,
+  RequestMapping,
+  ResponseStatus,
+  RestController
+}
 
 import za.co.absa.springdocopenapiscala.OpenAPIModelRegistration
 import za.co.absa.springdocopenapiscala.examples.simple.model.{ExampleModelRequest, ExampleModelResponse}
@@ -29,7 +35,7 @@ import java.util.concurrent.CompletableFuture
 @RequestMapping(
   value = Array("/api/v1/example")
 )
-class ExampleController @Autowired()(openAPIModelRegistration: OpenAPIModelRegistration) {
+class ExampleController @Autowired() (openAPIModelRegistration: OpenAPIModelRegistration) {
 
   openAPIModelRegistration.register[ExampleModelRequest]()
   openAPIModelRegistration.register[ExampleModelResponse]()
@@ -42,6 +48,14 @@ class ExampleController @Autowired()(openAPIModelRegistration: OpenAPIModelRegis
     val response = ExampleModelResponse(Seq(body.a, 123), true)
 
     CompletableFuture.completedFuture(response)
+  }
+
+  @PostMapping(value = Array("/empty-endpoint"))
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  def emptyEndpoint(): CompletableFuture[ResponseEntity[Unit]] = {
+    CompletableFuture.completedFuture(
+      ResponseEntity.noContent.build[Unit]
+    )
   }
 
 }
