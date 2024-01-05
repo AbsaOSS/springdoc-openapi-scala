@@ -18,7 +18,7 @@ package za.co.absa.springdocopenapiscala
 
 import org.springdoc.core.customizers.OpenApiCustomiser
 
-object SpringdocOpenAPIVersionSpecificTypes {
+private[springdocopenapiscala] object SpringdocOpenAPIVersionSpecificTypes {
 
   type OpenApiCustomizer = OpenApiCustomiser
 
