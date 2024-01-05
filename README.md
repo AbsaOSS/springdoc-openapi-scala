@@ -24,25 +24,45 @@ This library aims to avoid pollution of the model by custom annotations and depe
 
 ## Usage
 
+springdoc-openapi-scala supports two major versions of springdoc-openapi: 1.x and 2.x.
+
 ### Provided dependencies
-The library has `"org.springdoc" % "springdoc-openapi-webmvc-core"` as a provided dependency, 
-thus users of the library have to include that dependency in their projects.
-Versions `1.6.7` up to `1.7.0` (including) are supported.
+The library has springdoc-openapi as a provided dependency, 
+thus users of the library have to include that dependency in their projects:
+- for springdoc-openapi 1.x versions `1.6.7` up to `1.7.0` (including) of 
+`"org.springdoc" % "springdoc-openapi-webmvc-core"` are supported
+- for springdoc-openapi 2.x versions `1.6.7` up to `1.7.0` (including) of
+`"org.springdoc" % "springdoc-openapi-starter-webmvc-api"` are supported
 
 ### Add library dependency to SBT/Maven
-SBT:
+#### SBT
+If you want to use the library with springdoc-openapi 1.x, add:
 ```sbt
-libraryDependencies ++= Seq("za.co.absa" %% "springdoc-openapi-scala" % VERSION)
+libraryDependencies ++= Seq("za.co.absa" %% "springdoc-openapi-scala-1" % VERSION)
+```
+if with springdoc-openapi 2.x, add:
+```sbt
+libraryDependencies ++= Seq("za.co.absa" %% "springdoc-openapi-scala-2" % VERSION)
 ```
 
-Maven:
+#### Maven
+If you want to use the library with springdoc-openapi 1.x, add:
 ```xml
 <dependency>
    <groupId>za.co.absa</groupId>
-   <artifactId>springdoc-openapi-scala_{scala_binary_version}</artifactId>
+   <artifactId>springdoc-openapi-scala-1_{scala_binary_version}</artifactId>
    <version>${version}</version>
 </dependency>
 ```
+if with springdoc-openapi 2.x, add:
+```xml
+<dependency>
+   <groupId>za.co.absa</groupId>
+   <artifactId>springdoc-openapi-scala-2_{scala_binary_version}</artifactId>
+   <version>${version}</version>
+</dependency>
+```
+
 where `scala_binary_version` is either `2.12` or `2.13`.
 
 ### Create custom OpenAPI Spring Configuration
@@ -102,8 +122,8 @@ class ExampleController @Autowired()(openAPIModelRegistration: OpenAPIModelRegis
 
 ## Examples
 
-### Simple example
-Can be found in this repo: [link](examples/simple). It generates the following OpenAPI JSON doc:
+### Simple example for springdoc-openapi-scala-1
+Can be found in this repo: [link](examples/springdoc-openapi-scala-1/simple). It generates the following OpenAPI JSON doc:
 ```json
 {
     "openapi": "3.0.1",
@@ -190,5 +210,118 @@ Can be found in this repo: [link](examples/simple). It generates the following O
             }
         }
     }
+}
+```
+
+### Simple example for springdoc-openapi-scala-2
+Can be found in this repo: [link](examples/springdoc-openapi-scala-2/simple). It generates the following OpenAPI JSON doc:
+```json
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Example API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "paths": {
+    "/api/v1/example/some-endpoint": {
+      "post": {
+        "tags": [
+          "example-controller"
+        ],
+        "operationId": "someEndpoint",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExampleModelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExampleModelResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/example/empty-endpoint": {
+      "post": {
+        "tags": [
+          "example-controller"
+        ],
+        "operationId": "emptyEndpoint",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ExampleModelRequest": {
+        "required": [
+          "a",
+          "b",
+          "d"
+        ],
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "b": {
+            "type": "string"
+          },
+          "c": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "d": {
+            "type": "string",
+            "enum": [
+              "OptionC",
+              "OptionB",
+              "OptionA"
+            ]
+          }
+        }
+      },
+      "ExampleModelResponse": {
+        "required": [
+          "d",
+          "e"
+        ],
+        "properties": {
+          "d": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "e": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
 }
 ```
