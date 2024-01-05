@@ -15,26 +15,48 @@ jobs:
         uses: olafurpg/setup-scala@v14
         with:
           java-version: "adopt@1.8"
-      - name: Build, run tests, and generate Jacoco code coverage report
-        run: sbt ++2.12.18 jacoco
-      - name: Add coverage to PR
-        id: jacoco
+      - name: Build, run tests, and generate Jacoco code coverage report for springdoc-openapi-scala (all subversions)
+        run: sbt jacoco
+      - name: Add coverage to PR for springdoc-openapi-scala-1
+        id: jacoco1
         uses: madrapps/jacoco-report@v1.6.1
         with:
           paths: >
-            ${{ github.workspace }}/target/scala-2.12/jacoco/report/jacoco.xml
+            ${{ github.workspace }}/target/1-jvm-2.12/jacoco/report/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 0.0
           min-coverage-changed-files: 80.0
-          title: JaCoCo code coverage report - springdoc-openapi-scala
+          title: JaCoCo code coverage report - springdoc-openapi-scala-1
           update-comment: true
           debug-mode: true
-      - name: Get the Coverage info
+      - name: Add coverage to PR for springdoc-openapi-scala-2
+        id: jacoco2
+        uses: madrapps/jacoco-report@v1.6.1
+        with:
+          paths: >
+            ${{ github.workspace }}/target/2-jvm-2.12/jacoco/report/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 0.0
+          min-coverage-changed-files: 80.0
+          title: JaCoCo code coverage report - springdoc-openapi-scala-2
+          update-comment: true
+          debug-mode: true
+      - name: Get the Coverage info for springdoc-openapi-scala-1
         run: |
-          echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
-          echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
-      - name: Fail PR if changed files coverage is less than 80%
-        if: ${{ steps.jacoco.outputs.coverage-changed-files < 80.0 }}
+          echo "Total coverage ${{ steps.jacoco1.outputs.coverage-overall }}"
+          echo "Changed Files coverage ${{ steps.jacoco1.outputs.coverage-changed-files }}"
+      - name: Get the Coverage info for springdoc-openapi-scala-2
+        run: |
+          echo "Total coverage ${{ steps.jacoco2.outputs.coverage-overall }}"
+          echo "Changed Files coverage ${{ steps.jacoco2.outputs.coverage-changed-files }}"
+      - name: Fail PR if changed files coverage is less than 80% for springdoc-openapi-scala-1
+        if: ${{ steps.jacoco1.outputs.coverage-changed-files < 80.0 }}
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            core.setFailed('Changed files coverage is less than 80%!')
+      - name: Fail PR if changed files coverage is less than 80% for springdoc-openapi-scala-2
+        if: ${{ steps.jacoco2.outputs.coverage-changed-files < 80.0 }}
         uses: actions/github-script@v7.0.1
         with:
           script: |
