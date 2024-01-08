@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-import SpringdocOpenAPIVersionAxis._
-import Dependencies._
+package za.co.absa.springdocopenapiscala.examples.simple.model
 
-ThisBuild / organization := "za.co.absa"
-ThisBuild / scalaVersion := Versions.scala212
-ThisBuild / versionScheme := Some("early-semver")
-
-lazy val supportedScalaVersions = List(Versions.scala212, Versions.scala213)
-
-lazy val `springdoc-openapi-scala` = (projectMatrix in file("library"))
-  .settings(
-    name := "springdoc-openapi-scala"
-  )
-  .row(SpringdocOpenAPIVersionAxis(1), supportedScalaVersions)
-  .row(SpringdocOpenAPIVersionAxis(2), supportedScalaVersions)
+case class ExampleModelResponse(d: Seq[Int], e: Boolean)

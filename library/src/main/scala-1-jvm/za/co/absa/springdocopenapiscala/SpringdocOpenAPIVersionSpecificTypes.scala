@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-import SpringdocOpenAPIVersionAxis._
-import Dependencies._
+package za.co.absa.springdocopenapiscala
 
-ThisBuild / organization := "za.co.absa"
-ThisBuild / scalaVersion := Versions.scala212
-ThisBuild / versionScheme := Some("early-semver")
+import org.springdoc.core.customizers.OpenApiCustomiser
 
-lazy val supportedScalaVersions = List(Versions.scala212, Versions.scala213)
+private[springdocopenapiscala] object SpringdocOpenAPIVersionSpecificTypes {
 
-lazy val `springdoc-openapi-scala` = (projectMatrix in file("library"))
-  .settings(
-    name := "springdoc-openapi-scala"
-  )
-  .row(SpringdocOpenAPIVersionAxis(1), supportedScalaVersions)
-  .row(SpringdocOpenAPIVersionAxis(2), supportedScalaVersions)
+  type OpenApiCustomizer = OpenApiCustomiser
+
+}

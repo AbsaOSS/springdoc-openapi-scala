@@ -14,18 +14,4 @@
  * limitations under the License.
  */
 
-import SpringdocOpenAPIVersionAxis._
-import Dependencies._
-
-ThisBuild / organization := "za.co.absa"
-ThisBuild / scalaVersion := Versions.scala212
-ThisBuild / versionScheme := Some("early-semver")
-
-lazy val supportedScalaVersions = List(Versions.scala212, Versions.scala213)
-
-lazy val `springdoc-openapi-scala` = (projectMatrix in file("library"))
-  .settings(
-    name := "springdoc-openapi-scala"
-  )
-  .row(SpringdocOpenAPIVersionAxis(1), supportedScalaVersions)
-  .row(SpringdocOpenAPIVersionAxis(2), supportedScalaVersions)
+addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "4.2.4")

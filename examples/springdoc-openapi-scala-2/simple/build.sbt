@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import SpringdocOpenAPIVersionAxis._
-import Dependencies._
+ThisBuild / scalaVersion := "2.12.18"
 
-ThisBuild / organization := "za.co.absa"
-ThisBuild / scalaVersion := Versions.scala212
-ThisBuild / versionScheme := Some("early-semver")
+lazy val `springdoc-openapi-scala-2-version`: String = ??? // specify version of the library, for example "0.2.0"
 
-lazy val supportedScalaVersions = List(Versions.scala212, Versions.scala213)
-
-lazy val `springdoc-openapi-scala` = (projectMatrix in file("library"))
+lazy val root = (project in file("."))
   .settings(
-    name := "springdoc-openapi-scala"
+    libraryDependencies ++= Seq(
+      "za.co.absa" %% "springdoc-openapi-scala-2" % `springdoc-openapi-scala-2-version`,
+      "org.springdoc" % "springdoc-openapi-starter-webmvc-api" % "2.3.0",
+      "org.springframework.boot" % "spring-boot-starter-web" % "3.2.0"
+    ),
+    webappWebInfClasses := true,
+    inheritJarManifest := true
   )
-  .row(SpringdocOpenAPIVersionAxis(1), supportedScalaVersions)
-  .row(SpringdocOpenAPIVersionAxis(2), supportedScalaVersions)
+  .enablePlugins(TomcatPlugin)

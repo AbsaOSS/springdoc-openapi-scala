@@ -23,11 +23,6 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        scala: [2.12.18, 2.13.12]
-    name: Scala ${{matrix.scala}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.1.1
@@ -35,6 +30,6 @@ jobs:
       - name: Setup Scala
         uses: olafurpg/setup-scala@v14
         with:
-          java-version: "adopt@1.8"
+          java-version: "openjdk@1.17.0"
       - name: Build and run tests
-        run: sbt ++${{matrix.scala}} clean test
+        run: sbt clean test

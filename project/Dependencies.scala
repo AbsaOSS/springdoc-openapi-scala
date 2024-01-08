@@ -24,25 +24,24 @@ object Dependencies {
 
     val scalatest = "3.2.15"
 
-    val springdocOpenapi = "[1.6.7,1.7.0]"
-
-    val springBoot = "2.6.6"
+    def springdocOpenapi(majorVersion: Int): String = majorVersion match {
+      case 1 => "[1.6.7,1.7.0]"
+      case 2 => "[2.0.0,2.3.0]"
+    }
   }
 
-  def libraryDependencyList(scalaVersion: String): Seq[ModuleID] = {
+  def libraryDependencyList(springdocOpenAPIMajorVersion: Int, scalaVersion: String): Seq[ModuleID] = {
+    val springdocOpenAPIVersion = Versions.springdocOpenapi(springdocOpenAPIMajorVersion)
+    val springdocOpenAPIDependency = springdocOpenAPIMajorVersion match {
+      case 1 => "org.springdoc" % "springdoc-openapi-webmvc-core" % springdocOpenAPIVersion % Provided
+      case 2 => "org.springdoc" % "springdoc-openapi-starter-webmvc-api" % springdocOpenAPIVersion % Provided
+    }
+
     List(
       "org.scala-lang" % "scala-reflect" % scalaVersion,
-      "org.springdoc" % "springdoc-openapi-webmvc-core" % Versions.springdocOpenapi % Provided,
+      springdocOpenAPIDependency,
       "org.scalatest" %% "scalatest" % Versions.scalatest % Test,
       "org.scalatest" %% "scalatest-flatspec" % Versions.scalatest % Test
-    )
-  }
-
-  def exampleProjectsDependencyList: Seq[ModuleID] = {
-    List(
-      "org.springframework.boot" % "spring-boot-starter-web" % Versions.springBoot,
-      "org.springframework.boot" % "spring-boot-starter-tomcat" % Versions.springBoot,
-      "org.springdoc" % "springdoc-openapi-webmvc-core" % Versions.springdocOpenapi
     )
   }
 
