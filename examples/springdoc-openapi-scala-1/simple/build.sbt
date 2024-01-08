@@ -16,10 +16,12 @@
 
 ThisBuild / scalaVersion := "2.12.18"
 
+lazy val `springdoc-openapi-scala-1-version`: String = ??? // specify version of the library, for example "0.2.0"
+
 lazy val root = (project in file("."))
   .settings(
     libraryDependencies ++= Seq(
-      "za.co.absa" %% "springdoc-openapi-scala-1" % "0.2.0-SNAPSHOT",
+      "za.co.absa" %% "springdoc-openapi-scala-1" % `springdoc-openapi-scala-1-version`,
       "org.springdoc" % "springdoc-openapi-webmvc-core" % "1.7.0",
       "org.springframework.boot" % "spring-boot-starter-web" % "2.6.6"
     ),
