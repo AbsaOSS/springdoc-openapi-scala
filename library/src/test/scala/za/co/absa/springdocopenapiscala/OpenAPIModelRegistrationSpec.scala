@@ -110,6 +110,25 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     a: ThingsWithRenaming.ThingWithRenaming
   )
 
+  sealed private trait SealedTrait
+
+  private case class SealedTraitVariant1(a: String) extends SealedTrait
+
+  private case class SealedTraitVariant2(a: Int) extends SealedTrait
+
+  sealed abstract class SealedAbstractClass
+
+  private case object SealedAbstractClassCaseObject extends SealedAbstractClass
+  private case class SealedAbstractClassVariant(a: String) extends SealedAbstractClass
+
+  private case class SumTypeClass(a: SealedTrait)
+
+  private case class SumTypeClassWithSealedAbstractClass(a: SealedAbstractClass)
+
+  sealed private trait EmptySealedTrait
+
+  private case class EmptySealedTraitClass(a: EmptySealedTrait)
+
   behavior of "register"
 
   it should "add schema of a case class that contain fields with simple types to injected components" in {
@@ -227,6 +246,77 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     val actualSchemas = components.getSchemas
 
     assertEnumIsStringAndHasFollowingOptions(actualSchemas, "EnumsWithRenaming.a", Set("PIZZA", "TV", "RADIO"))
+  }
+
+  it should "make sealed type an OpenAPI schema with the oneOf attribute" in {
+    val components = new Components
+    val openAPIModelRegistration = new OpenAPIModelRegistration(components)
+
+    openAPIModelRegistration.register[SumTypeClass]()
+
+    val actualSchemas = components.getSchemas
+
+    assertTypeAndFormatAreAsExpected(actualSchemas, "SealedTraitVariant1.a", "string")
+    assertTypeAndFormatAreAsExpected(actualSchemas, "SealedTraitVariant2.a", "integer",
+      Some("int32"))
+
+    assertPredicateForPath(
+      actualSchemas,
+      "SumTypeClass.a",
+      schema => {
+        val actualOneOf = schema.getOneOf.asScala
+        val expectedOneOf = Seq(
+          new Schema().$ref("#/components/schemas/SealedTraitVariant1"),
+          new Schema().$ref("#/components/schemas/SealedTraitVariant2")
+        )
+        actualOneOf === expectedOneOf
+      }
+    )
+  }
+
+  it should "make sealed abstract class with case object an OpenAPI schema with the oneOf attribute" in {
+    val components = new Components
+    val openAPIModelRegistration = new OpenAPIModelRegistration(components)
+
+    openAPIModelRegistration.register[SumTypeClassWithSealedAbstractClass]()
+
+    val actualSchemas = components.getSchemas
+
+    assertTypeAndFormatAreAsExpected(actualSchemas,"SealedAbstractClassVariant.a", "string")
+    assert(actualSchemas.containsKey("SealedAbstractClassCaseObject"))
+    assert(Option(actualSchemas.get("SealedAbstractClassCaseObject").getProperties).isEmpty)
+
+    assertPredicateForPath(
+      actualSchemas,
+      "SumTypeClassWithSealedAbstractClass.a",
+      schema => {
+        val actualOneOf = schema.getOneOf.asScala
+        val expectedOneOf = Seq(
+          new Schema().$ref("#/components/schemas/SealedAbstractClassCaseObject"),
+          new Schema().$ref("#/components/schemas/SealedAbstractClassVariant")
+        )
+        actualOneOf === expectedOneOf
+      }
+    )
+  }
+
+  it should "not fail for empty sealed trait" in {
+    val components = new Components
+    val openAPIModelRegistration = new OpenAPIModelRegistration(components)
+
+    openAPIModelRegistration.register[EmptySealedTraitClass]()
+
+    val actualSchemas = components.getSchemas
+
+    assertPredicateForPath(
+      actualSchemas,
+      "EmptySealedTraitClass.a",
+      schema => {
+        val actualOneOf = schema.getOneOf.asScala
+        val expectedOneOf = Seq()
+        actualOneOf === expectedOneOf
+      }
+    )
   }
 
   private def assertTypeAndFormatAreAsExpected(
