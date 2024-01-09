@@ -23,7 +23,6 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe._
 
 class OpenAPIModelRegistration(components: Components) {
