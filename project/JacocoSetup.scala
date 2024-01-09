@@ -36,7 +36,7 @@ object JacocoSetup {
 
   def jacocoProjectExcludes(springdocOpenAPIMajorVersion: Int, scalaVersion: String): Seq[String] = {
     Seq(
-      //  "za.co.absa.springdocopenapiscala.*"
+      "za.co.absa.springdocopenapiscala.SpringdocOpenAPIVersionSpecificTypes*"
     )
   }
 

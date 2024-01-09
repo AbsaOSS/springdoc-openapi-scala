@@ -128,7 +128,7 @@ Can be found in this repo: [link](examples/springdoc-openapi-scala-1/simple). It
 {
     "openapi": "3.0.1",
     "info": {
-        "title": "Example API",
+        "title": "Example API with springdoc-openapi v1.x",
         "version": "1.0.0"
     },
     "servers": [
@@ -219,7 +219,7 @@ Can be found in this repo: [link](examples/springdoc-openapi-scala-2/simple). It
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Example API",
+    "title": "Example API with springdoc-openapi v2.x",
     "version": "1.0.0"
   },
   "servers": [

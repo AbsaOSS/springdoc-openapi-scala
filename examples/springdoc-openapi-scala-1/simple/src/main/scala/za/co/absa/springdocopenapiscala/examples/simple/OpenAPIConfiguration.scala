@@ -30,7 +30,7 @@ class OpenAPIConfiguration {
     Seq((openAPI: OpenAPI) =>
       openAPI.setInfo(
         new Info()
-          .title("Example API")
+          .title("Example API with springdoc-openapi v1.x")
           .version("1.0.0")
       )
     )
