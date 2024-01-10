@@ -159,6 +159,62 @@ class ExampleController @Autowired()(openAPIModelRegistration: OpenAPIModelRegis
 }
 ```
 
+### Adding support for custom types
+To add support for custom types (or overwrite handling of any type supported by the library) 
+one can create a custom `ExtraTypesHandler` and provide it when creating a `Bundle`.
+
+There are multiple ways to do so, the simplest is to use `ExtraTypesHandling.simpleMapping`, for example:
+```scala
+OpenAPIModelRegistration.ExtraTypesHandling.simpleMapping {
+  case t if t =:= typeOf[JsValue] =>
+    val schema = new Schema
+    schema.setType("string")
+    schema.setFormat("json")
+    schema
+}
+```
+This `ExtraTypesHandler` handles `JsValue` by mapping it to simple OpenAPI `string` type with `json` format.
+
+But `ExtraTypesHandler` can also be much more powerful, for example: 
+```scala
+case class CustomClassComplexChild(a: Option[Int])
+
+class CustomClass(val complexChild: CustomClassComplexChild) {
+  // these won't be included
+  val meaningOfLife: Int = 42
+  val alphabetHead: String = "abc"
+}
+
+...
+
+val extraTypesHandler: ExtraTypesHandler = (tpe: Type) =>
+  tpe match {
+    case t if t =:= typeOf[CustomClass] =>
+      val childTypesToBeResolvedByTheLibrary = Set(typeOf[CustomClassComplexChild])
+      
+      val handleFn: HandleFn = (resolvedChildTypes, context) => {
+        val name = "CustomClass"
+        val customClassComplexChildResolvedSchema = resolvedChildTypes(typeOf[CustomClassComplexChild])
+        val schema = new Schema
+        schema.addProperty("complexChild", customClassComplexChildResolvedSchema)
+        context.components.addSchemas(name, schema)
+        val schemaReference = new Schema
+        schemaReference.set$ref(s"#/components/schemas/$name")
+        schemaReference
+      }
+      
+      (childTypesToBeResolvedByTheLibrary, handleFn)
+  }
+```
+This `ExtraTypesHandler` handles `CustomClass`. 
+`CustomClass` uses `CustomClassComplexChild`, 
+so the handler requests the library to resolve its type (`childTypesToBeResolvedByTheLibrary`).
+This resolved type is available as input to `HandleFn`.
+Then, in `handleFn`, the handler creates a `Schema` object for `CustomClass`, 
+adds it to `Components` so that it can be referenced by name `CustomClass`,
+and returns reference to that object.
+
+
 ## Examples
 
 ### Simple example for springdoc-openapi-scala-1
