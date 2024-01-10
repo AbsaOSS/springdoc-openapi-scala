@@ -76,13 +76,13 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     b: Map[Int, Arrays]
   )
 
-  object Things extends Enumeration {
+  private object Things extends Enumeration {
     type Thing = Value
 
     val Pizza, TV, Radio = Value
   }
 
-  object DifferentThing extends Enumeration {
+  private object DifferentThing extends Enumeration {
     type DifferentThing = Value
 
     val Cleaner = Value
@@ -93,7 +93,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     def unrelatedDef: Int = 123
   }
 
-  object ThingsWithRenaming extends Enumeration {
+  private object ThingsWithRenaming extends Enumeration {
     type ThingWithRenaming = Value
 
     val Pizza = Value("PIZZA")
