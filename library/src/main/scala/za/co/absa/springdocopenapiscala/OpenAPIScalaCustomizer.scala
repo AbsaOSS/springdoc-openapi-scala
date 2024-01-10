@@ -21,7 +21,7 @@ import za.co.absa.springdocopenapiscala.SpringdocOpenAPIVersionSpecificTypes.Ope
 
 import scala.collection.JavaConverters._
 
-class OpenAPISScalaCustomizer(components: Components) extends OpenApiCustomizer {
+class OpenAPIScalaCustomizer(components: Components) extends OpenApiCustomizer {
 
   override def customise(openAPIOutOfSync: OpenAPI): Unit = {
     // this is needed as for some reason springdoc-openapi cache the `OpenAPI` at the beginning

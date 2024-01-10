@@ -74,12 +74,13 @@ class OpenAPIModelRegistration(
     if (extraTypesHandler.isDefinedAt(tpe)) handleExtraTypes(tpe)
     else
       tpe.dealias match {
-        case t if tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass => handleCaseClass(t)
+        case t if tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass => handleCaseType(t)
         case t if t <:< typeOf[Map[_, _]]                                      => handleMap(t)
         case t if t <:< typeOf[Option[_]]                                      => handleType(t.typeArgs.head)
         case t if t <:< typeOf[Seq[_]] || t <:< typeOf[Array[_]]               => handleSeqLike(t)
         case t if t <:< typeOf[Set[_]]                                         => handleSet(t)
         case t if t <:< typeOf[Enumeration#Value]                              => handleEnum(t)
+        case t if t.typeSymbol.isClass && t.typeSymbol.asClass.isSealed        => handleSealedType(t)
         case t                                                                 => handleSimpleType(t)
       }
   }
@@ -91,7 +92,7 @@ class OpenAPIModelRegistration(
     handleFn(resolvedChildTypes, context)
   }
 
-  private def handleCaseClass(tpe: Type): Schema[_] = {
+  private def handleCaseType(tpe: Type): Schema[_] = {
     val name = tpe.typeSymbol.name.toString.trim
     val schema = new Schema
     val fields = tpe.decls.collect {
@@ -142,6 +143,15 @@ class OpenAPIModelRegistration(
 
   private def isSymbolEnumerationValue(s: Symbol): Boolean =
     s.isTerm && s.asTerm.isVal && s.typeSignature <:< typeOf[Enumeration#Value]
+
+  private def handleSealedType(tpe: Type): Schema[_] = {
+    val classSymbol = tpe.typeSymbol.asClass
+    val children = classSymbol.knownDirectSubclasses
+    val childrenSchemas = children.map(_.asType.toType).map(handleType)
+    val schema = new Schema
+    schema.setOneOf(childrenSchemas.toList.asJava)
+    schema
+  }
 
   private def handleSimpleType(tpe: Type): Schema[_] = {
     val schema = new Schema

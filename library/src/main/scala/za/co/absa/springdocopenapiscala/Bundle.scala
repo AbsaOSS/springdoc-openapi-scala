@@ -24,7 +24,7 @@ import za.co.absa.springdocopenapiscala.SpringdocOpenAPIVersionSpecificTypes._
  *  Glues all components of `springdoc-openapi-scala` together
  *  and enables additional customization (for example to set info or support custom types).
  *
- *  @param extraOpenAPICustomizers additional customizers that are executed after [[OpenAPISScalaCustomizer]]
+ *  @param extraOpenAPICustomizers additional customizers that are executed after [[OpenAPIScalaCustomizer]]
  *  @param extraTypesHandler [[ExtraTypesHandling.ExtraTypesHandler]] to be used in model registration
  */
 class Bundle(
@@ -37,9 +37,9 @@ class Bundle(
   val modelRegistration: OpenAPIModelRegistration = new OpenAPIModelRegistration(components, extraTypesHandler)
 
   val customizer: OpenApiCustomizer = {
-    val openAPISScalaCustomizer = new OpenAPISScalaCustomizer(components)
+    val openAPIScalaCustomizer = new OpenAPIScalaCustomizer(components)
 
-    (openApi: OpenAPI) => (openAPISScalaCustomizer +: extraOpenAPICustomizers).foreach(_.customise(openApi))
+    (openApi: OpenAPI) => (openAPIScalaCustomizer +: extraOpenAPICustomizers).foreach(_.customise(openApi))
   }
 
 }
