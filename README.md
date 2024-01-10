@@ -165,90 +165,95 @@ class ExampleController @Autowired()(openAPIModelRegistration: OpenAPIModelRegis
 Can be found in this repo: [link](examples/springdoc-openapi-scala-1/simple). It generates the following OpenAPI JSON doc:
 ```json
 {
-    "openapi": "3.0.1",
-    "info": {
-        "title": "Example API with springdoc-openapi v1.x",
-        "version": "1.0.0"
-    },
-    "servers": [
-        {
-            "url": "http://localhost:8080",
-            "description": "Generated server url"
-        }
-    ],
-    "paths": {
-        "/api/v1/example/some-endpoint": {
-            "post": {
-                "tags": [
-                    "example-controller"
-                ],
-                "operationId": "someEndpoint",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ExampleModelRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ExampleModelResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "components": {
-        "schemas": {
-            "ExampleModelRequest": {
-                "required": [
-                    "a",
-                    "b"
-                ],
-                "properties": {
-                    "a": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "b": {
-                        "type": "string"
-                    },
-                    "c": {
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                }
-            },
-            "ExampleModelResponse": {
-                "required": [
-                    "d",
-                    "e"
-                ],
-                "properties": {
-                    "d": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer",
-                            "format": "int32"
-                        }
-                    },
-                    "e": {
-                        "type": "boolean"
-                    }
-                }
-            }
-        }
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Example API with springdoc-openapi v1.x",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
     }
+  ],
+  "paths": {
+    "/api/v1/example/some-endpoint": {
+      "post": {
+        "tags": [
+          "example-controller"
+        ],
+        "operationId": "someEndpoint",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExampleModelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExampleModelResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ExampleModelRequest": {
+        "required": [
+          "a",
+          "b",
+          "d"
+        ],
+        "properties": {
+          "a": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "b": {
+            "type": "string"
+          },
+          "c": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "d": {
+            "type": "string",
+            "format": "json"
+          }
+        }
+      },
+      "ExampleModelResponse": {
+        "required": [
+          "d",
+          "e"
+        ],
+        "properties": {
+          "d": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "e": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
 }
 ```
 
@@ -318,7 +323,8 @@ Can be found in this repo: [link](examples/springdoc-openapi-scala-2/simple). It
         "required": [
           "a",
           "b",
-          "d"
+          "d",
+          "e"
         ],
         "properties": {
           "a": {
@@ -339,6 +345,10 @@ Can be found in this repo: [link](examples/springdoc-openapi-scala-2/simple). It
               "OptionB",
               "OptionA"
             ]
+          },
+          "e": {
+            "type": "string",
+            "format": "json"
           }
         }
       },

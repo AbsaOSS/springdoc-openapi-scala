@@ -230,6 +230,7 @@ object OpenAPIModelRegistration {
      *        val schema = new Schema
      *        schema.setType("string")
      *        schema.setFormat("json")
+     *        schema
      *    }
      *  }}}
      */
