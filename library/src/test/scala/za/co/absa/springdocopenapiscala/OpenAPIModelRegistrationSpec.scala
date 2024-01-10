@@ -18,13 +18,14 @@ package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.media.Schema
-
 import org.scalatest
 import org.scalatest.flatspec.AnyFlatSpec
+import za.co.absa.springdocopenapiscala.OpenAPIModelRegistration.ExtraTypesHandling
 
 import java.time.{Instant, LocalDate, LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import scala.collection.JavaConverters._
+import scala.reflect.runtime.universe._
 
 class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
@@ -108,6 +109,25 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
   private case class EnumsWithRenaming(
     a: ThingsWithRenaming.ThingWithRenaming
+  )
+
+  private case class CustomClassComplexChild(a: Option[Int])
+
+  private class CustomClass(val complexChild: CustomClassComplexChild) {
+    // these won't be included
+    val meaningOfLife: Int = 42
+    val alphabetHead: String = "abc"
+  }
+
+  private class CustomClassReducingToSimpleType(json: String) {
+    def complexLogic: String = json.trim
+  }
+
+  private case class ForCustomHandling(
+    customClass: CustomClass,
+    a: String,
+    b: Int,
+    customClassReducingToSimpleType: CustomClassReducingToSimpleType
   )
 
   behavior of "register"
@@ -228,6 +248,111 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
     assertEnumIsStringAndHasFollowingOptions(actualSchemas, "EnumsWithRenaming.a", Set("PIZZA", "TV", "RADIO"))
   }
+
+  it should "use provided ExtraTypesHandler to handle custom types" in {
+    import ExtraTypesHandling._
+
+    val components = new Components
+    val extraTypesHandler: ExtraTypesHandler = (tpe: Type) =>
+      tpe match {
+        case t if t =:= typeOf[CustomClass] =>
+          val childTypesToBeResolvedByTheLibrary = Set(typeOf[CustomClassComplexChild])
+          val handleFn: HandleFn = (resolvedChildTypesSchemas, context) => {
+            val name = "CustomClass"
+            val customClassComplexChildResolvedSchema = resolvedChildTypesSchemas(typeOf[CustomClassComplexChild])
+            val schema = new Schema
+            schema.addProperty("complexChild", customClassComplexChildResolvedSchema)
+            context.components.addSchemas(name, schema)
+            val schemaReference = new Schema
+            schemaReference.set$ref(s"#/components/schemas/$name")
+            schemaReference
+          }
+          (childTypesToBeResolvedByTheLibrary, handleFn)
+
+        case t if t =:= typeOf[CustomClassReducingToSimpleType] =>
+          val handleFn: HandleFn = (_, _) => {
+            val schema = new Schema
+            schema.setType("string")
+            schema.setFormat("json")
+            schema
+          }
+          (Set.empty, handleFn)
+      }
+    val openAPIModelRegistration = new OpenAPIModelRegistration(components, extraTypesHandler)
+
+    openAPIModelRegistration.register[ForCustomHandling]()
+
+    val actualSchemas = components.getSchemas
+
+    assertRefIsAsExpected(
+      actualSchemas,
+      "ForCustomHandling.customClass",
+      "#/components/schemas/CustomClass"
+    )
+    assertTypeAndFormatAreAsExpected(
+      actualSchemas,
+      "ForCustomHandling.a",
+      "string",
+      None
+    )
+    assertTypeAndFormatAreAsExpected(
+      actualSchemas,
+      "ForCustomHandling.b",
+      "integer",
+      Some("int32")
+    )
+    assertTypeAndFormatAreAsExpected(
+      actualSchemas,
+      "ForCustomHandling.customClassReducingToSimpleType",
+      "string",
+      Some("json")
+    )
+    assertRefIsAsExpected(
+      actualSchemas,
+      "CustomClass.complexChild",
+      "#/components/schemas/CustomClassComplexChild"
+    )
+    assertPredicateForPath(
+      actualSchemas,
+      "CustomClass",
+      schema => schema.getProperties.size == 1
+    )
+  }
+
+  it should
+    "use provided ExtraTypesHandler to overwrite common types that would normally be handled by the library" in {
+      val components = new Components
+      val extraTypesHandler = ExtraTypesHandling.simpleMapping {
+        case t if t =:= typeOf[String] =>
+          val schema = new Schema
+          schema.setType("string")
+          schema.setFormat("my-custom-format")
+          schema
+      }
+      val openAPIModelRegistration = new OpenAPIModelRegistration(components, extraTypesHandler)
+
+      openAPIModelRegistration.register[SimpleTypesMaybeInOption]()
+
+      val actualSchemas = components.getSchemas
+
+      assertTypeAndFormatAreAsExpected(
+        actualSchemas,
+        "SimpleTypesMaybeInOption.a",
+        "string",
+        Some("my-custom-format")
+      )
+      assertTypeAndFormatAreAsExpected(
+        actualSchemas,
+        "SimpleTypesMaybeInOption.b",
+        "string",
+        Some("my-custom-format")
+      )
+
+      // these are to make sure that types not handled by `extraTypesHandler` still work as expected
+      assertTypeAndFormatAreAsExpected(actualSchemas, "SimpleTypesMaybeInOption.c", "integer", Some("int32"))
+      assertTypeAndFormatAreAsExpected(actualSchemas, "SimpleTypesMaybeInOption.d", "string", Some("date-time"))
+      assertTypeAndFormatAreAsExpected(actualSchemas, "SimpleTypesMaybeInOption.e", "string", Some("date-time"))
+    }
 
   private def assertTypeAndFormatAreAsExpected(
     actualSchemas: java.util.Map[String, Schema[_]],
