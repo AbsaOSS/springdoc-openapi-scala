@@ -197,7 +197,7 @@ object OpenAPIModelRegistration {
      *  - handle custom types that are not supported by the library.
      *  - overwrite handling of types that are supported by the library (for example to include some custom format)
      *
-     *  It takes [[Type]] as an input, and should produce a pair of :
+     *  It takes [[Type]] as an input, and should produce a pair of:
      *  - [[ChildTypesToBeResolved]] which is a set of types which the ExtraTypesHandler
      *    needs to be resolved by the library before it can perform its handling
      *  - [[HandleFn]] which performs the handling;
