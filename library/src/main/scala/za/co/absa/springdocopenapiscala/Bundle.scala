@@ -17,20 +17,24 @@
 package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.{Components, OpenAPI}
-
+import za.co.absa.springdocopenapiscala.OpenAPIModelRegistration.ExtraTypesHandling
 import za.co.absa.springdocopenapiscala.SpringdocOpenAPIVersionSpecificTypes._
 
 /**
  *  Glues all components of `springdoc-openapi-scala` together
- *  and enables additional customization (for example to set info).
+ *  and enables additional customization (for example to set info or support custom types).
  *
  *  @param extraOpenAPICustomizers additional customizers that are executed after [[OpenAPISScalaCustomizer]]
+ *  @param extraTypesHandler [[ExtraTypesHandling.ExtraTypesHandler]] to be used in model registration
  */
-class Bundle(extraOpenAPICustomizers: Seq[OpenApiCustomizer] = Seq.empty) {
+class Bundle(
+  extraOpenAPICustomizers: Seq[OpenApiCustomizer] = Seq.empty,
+  extraTypesHandler: ExtraTypesHandling.ExtraTypesHandler = ExtraTypesHandling.noExtraHandling
+) {
 
   private val components = new Components
 
-  val modelRegistration: OpenAPIModelRegistration = new OpenAPIModelRegistration(components)
+  val modelRegistration: OpenAPIModelRegistration = new OpenAPIModelRegistration(components, extraTypesHandler)
 
   val customizer: OpenApiCustomizer = {
     val openAPISScalaCustomizer = new OpenAPISScalaCustomizer(components)
