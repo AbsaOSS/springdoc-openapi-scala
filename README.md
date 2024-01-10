@@ -31,7 +31,7 @@ The library has springdoc-openapi as a provided dependency,
 thus users of the library have to include that dependency in their projects:
 - for springdoc-openapi 1.x versions `1.6.7` up to `1.7.0` (including) of 
 `"org.springdoc" % "springdoc-openapi-webmvc-core"` are supported
-- for springdoc-openapi 2.x versions `1.6.7` up to `1.7.0` (including) of
+- for springdoc-openapi 2.x versions `2.0.0` up to `2.3.0` (including) of
 `"org.springdoc" % "springdoc-openapi-starter-webmvc-api"` are supported
 
 ### Add library dependency to SBT/Maven
@@ -50,7 +50,7 @@ If you want to use the library with springdoc-openapi 1.x, add:
 ```xml
 <dependency>
    <groupId>za.co.absa</groupId>
-   <artifactId>springdoc-openapi-scala-1_{scala_binary_version}</artifactId>
+   <artifactId>springdoc-openapi-scala-1_${scala_binary_version}</artifactId>
    <version>${version}</version>
 </dependency>
 ```
@@ -58,7 +58,7 @@ if with springdoc-openapi 2.x, add:
 ```xml
 <dependency>
    <groupId>za.co.absa</groupId>
-   <artifactId>springdoc-openapi-scala-2_{scala_binary_version}</artifactId>
+   <artifactId>springdoc-openapi-scala-2_${scala_binary_version}</artifactId>
    <version>${version}</version>
 </dependency>
 ```
@@ -66,7 +66,15 @@ if with springdoc-openapi 2.x, add:
 where `scala_binary_version` is either `2.12` or `2.13`.
 
 ### Create custom OpenAPI Spring Configuration
+For springdoc-openapi 1.x
 ```scala
+import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.info.Info
+import org.springdoc.core.customizers.OpenApiCustomiser
+import org.springframework.context.annotation.{Bean, Configuration}
+
+import za.co.absa.springdocopenapiscala.{Bundle, OpenAPIModelRegistration}
+
 @Configuration
 class OpenAPIConfiguration {
 
@@ -74,7 +82,7 @@ class OpenAPIConfiguration {
     Seq((openAPI: OpenAPI) =>
       openAPI.setInfo(
         new Info()
-          .title("Example API")
+          .title("Example API with springdoc-openapi v1.x")
           .version("1.0.0")
       )
     )
@@ -82,6 +90,37 @@ class OpenAPIConfiguration {
 
   @Bean
   def openAPICustomizer: OpenApiCustomiser = springDocOpenAPIScalaBundle.customizer
+
+  @Bean
+  def openAPIModelRegistration: OpenAPIModelRegistration = springDocOpenAPIScalaBundle.modelRegistration
+
+}
+```
+
+For springdoc-openapi 2.x
+```scala
+import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.info.Info
+import org.springdoc.core.customizers.OpenApiCustomizer
+import org.springframework.context.annotation.{Bean, Configuration}
+
+import za.co.absa.springdocopenapiscala.{Bundle, OpenAPIModelRegistration}
+
+@Configuration
+class OpenAPIConfiguration {
+
+  private val springDocOpenAPIScalaBundle = new Bundle(
+    Seq((openAPI: OpenAPI) =>
+      openAPI.setInfo(
+        new Info()
+          .title("Example API with springdoc-openapi v2.x")
+          .version("1.0.0")
+      )
+    )
+  )
+
+  @Bean
+  def openAPICustomizer: OpenApiCustomizer = springDocOpenAPIScalaBundle.customizer
 
   @Bean
   def openAPIModelRegistration: OpenAPIModelRegistration = springDocOpenAPIScalaBundle.modelRegistration
