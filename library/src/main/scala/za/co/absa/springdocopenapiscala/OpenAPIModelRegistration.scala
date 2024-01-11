@@ -25,12 +25,18 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe._
 
-class OpenAPIModelRegistration(components: Components) {
+import OpenAPIModelRegistration._
+
+class OpenAPIModelRegistration(
+  components: Components,
+  extraTypesHandler: ExtraTypesHandling.ExtraTypesHandler = ExtraTypesHandling.noExtraHandling
+) {
 
   /**
-   *  Registers given top-level case class.
+   *  Registers given top-level type.
    *  Top-level means one that is directly either response from some endpoint or is in request body.
-   *  All child case classes are registered automatically by this method, they don't need to be registered separately.
+   *  All child case classes of a case class are registered automatically by this method,
+   *  they don't need to be registered separately.
    *
    *  For example for such model:
    *  {{{
@@ -52,6 +58,9 @@ class OpenAPIModelRegistration(components: Components) {
    *    openAPIModelRegistration.register[Response]
    *  }}}
    *  and `A` and `B` will be registered automatically.
+   *
+   *  To support custom types not supported by the library,
+   *  construct [[OpenAPIModelRegistration]] with [[OpenAPIModelRegistration.ExtraTypesHandling.ExtraTypesHandler]].
    */
   def register[T: TypeTag](): Unit = {
     val tpe = typeOf[T]
@@ -59,16 +68,28 @@ class OpenAPIModelRegistration(components: Components) {
   }
 
   private case class OpenAPISimpleType(tpe: String, format: Option[String] = None)
+
   @tailrec
-  private def handleType(tpe: Type): Schema[_] = tpe.dealias match {
-    case t if tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass => handleCaseType(t)
-    case t if t <:< typeOf[Map[_, _]]                                      => handleMap(t)
-    case t if t <:< typeOf[Option[_]]                                      => handleType(t.typeArgs.head)
-    case t if t <:< typeOf[Seq[_]] || t <:< typeOf[Array[_]]               => handleSeqLike(t)
-    case t if t <:< typeOf[Set[_]]                                         => handleSet(t)
-    case t if t <:< typeOf[Enumeration#Value]                              => handleEnum(t)
-    case t if t.typeSymbol.isClass && t.typeSymbol.asClass.isSealed        => handleSealedType(t)
-    case t                                                                 => handleSimpleType(t)
+  private def handleType(tpe: Type): Schema[_] = {
+    if (extraTypesHandler.isDefinedAt(tpe)) handleExtraTypes(tpe)
+    else
+      tpe.dealias match {
+        case t if tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass => handleCaseType(t)
+        case t if t <:< typeOf[Map[_, _]]                                      => handleMap(t)
+        case t if t <:< typeOf[Option[_]]                                      => handleType(t.typeArgs.head)
+        case t if t <:< typeOf[Seq[_]] || t <:< typeOf[Array[_]]               => handleSeqLike(t)
+        case t if t <:< typeOf[Set[_]]                                         => handleSet(t)
+        case t if t <:< typeOf[Enumeration#Value]                              => handleEnum(t)
+        case t if t.typeSymbol.isClass && t.typeSymbol.asClass.isSealed        => handleSealedType(t)
+        case t                                                                 => handleSimpleType(t)
+      }
+  }
+
+  private def handleExtraTypes(tpe: Type): Schema[_] = {
+    val (childTypesToBeResolved, handleFn) = extraTypesHandler(tpe)
+    val resolvedChildTypes: Map[Type, Schema[_]] = childTypesToBeResolved.map(t => (t, handleType(t))).toMap
+    val context = RegistrationContext(components)
+    handleFn(resolvedChildTypes, context)
   }
 
   private def handleCaseType(tpe: Type): Schema[_] = {
@@ -156,6 +177,68 @@ class OpenAPIModelRegistration(components: Components) {
     case t if t =:= typeOf[Instant]       => OpenAPISimpleType("string", Some("date-time"))
     case t if t =:= typeOf[LocalDateTime] => OpenAPISimpleType("string", Some("date-time"))
     case t if t =:= typeOf[LocalDate]     => OpenAPISimpleType("string", Some("date"))
+  }
+
+}
+
+object OpenAPIModelRegistration {
+
+  /**
+   *  Context of model registration.
+   *  Currently contains only `Components` that can be mutated if needed
+   *  (for example to add schema object to be used as schema reference by other types).
+   */
+  case class RegistrationContext(components: Components)
+
+  object ExtraTypesHandling {
+
+    /**
+     *  ExtraTypesHandler is a partial function which can be used to:
+     *  - handle custom types that are not supported by the library.
+     *  - overwrite handling of types that are supported by the library (for example to include some custom format)
+     *
+     *  It takes [[Type]] as an input, and should produce a pair of:
+     *  - [[ChildTypesToBeResolved]] which is a set of types which the ExtraTypesHandler
+     *    needs to be resolved by the library before it can perform its handling
+     *  - [[HandleFn]] which performs the handling;
+     *    it is a function which takes [[ResolvedChildTypes]]
+     *    (map of [[ChildTypesToBeResolved]] to [[Schema]] resolved by the library)
+     *    and [[RegistrationContext]], and should perform all the handling needed and at the end return [[Schema]]
+     */
+    type ExtraTypesHandler = PartialFunction[
+      Type,
+      (ChildTypesToBeResolved, HandleFn)
+    ]
+
+    type ChildTypesToBeResolved = Set[Type]
+    type ResolvedChildTypes = Map[Type, Schema[_]]
+    type HandleFn = (ResolvedChildTypes, RegistrationContext) => Schema[_]
+
+    /**
+     *  [[ExtraTypesHandler]] which doesn't add/overwrite support for any type.
+     */
+    val noExtraHandling: ExtraTypesHandler = PartialFunction.empty
+
+    /**
+     *  Creates simple [[ExtraTypesHandler]] which doesn't need [[RegistrationContext]]
+     *  nor doesn't have child types to be resolved by the library.
+     *
+     *  Example:
+     *  {{{
+     *    ExtraTypesHandling.simpleMapping {
+     *      case t if t =:= typeOf[JsonNode] =>
+     *        val schema = new Schema
+     *        schema.setType("string")
+     *        schema.setFormat("json")
+     *        schema
+     *    }
+     *  }}}
+     */
+    def simpleMapping(getSchemaOfTypes: PartialFunction[Type, Schema[_]]): ExtraTypesHandler =
+      getSchemaOfTypes.andThen { schema =>
+        (Set.empty, (_, _) => schema)
+      }
+
   }
 
 }

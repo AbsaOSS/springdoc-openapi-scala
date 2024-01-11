@@ -16,6 +16,8 @@
 
 package za.co.absa.springdocopenapiscala.examples.simple.model
 
+import play.api.libs.json.JsValue
+
 object SimpleEnums extends Enumeration {
 
   type SimpleEnum = Value
@@ -24,4 +26,4 @@ object SimpleEnums extends Enumeration {
 
 }
 
-case class ExampleModelRequest(a: Int, b: String, c: Option[Int], d: SimpleEnums.SimpleEnum)
+case class ExampleModelRequest(a: Int, b: String, c: Option[Int], d: SimpleEnums.SimpleEnum, e: JsValue)

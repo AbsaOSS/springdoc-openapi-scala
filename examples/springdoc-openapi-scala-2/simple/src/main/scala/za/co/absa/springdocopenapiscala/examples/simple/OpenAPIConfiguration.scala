@@ -18,8 +18,12 @@ package za.co.absa.springdocopenapiscala.examples.simple
 
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.media.Schema
 import org.springdoc.core.customizers.OpenApiCustomizer
 import org.springframework.context.annotation.{Bean, Configuration}
+import play.api.libs.json.JsValue
+
+import scala.reflect.runtime.universe.typeOf
 
 import za.co.absa.springdocopenapiscala.{Bundle, OpenAPIModelRegistration}
 
@@ -33,7 +37,14 @@ class OpenAPIConfiguration {
           .title("Example API with springdoc-openapi v2.x")
           .version("1.0.0")
       )
-    )
+    ),
+    OpenAPIModelRegistration.ExtraTypesHandling.simpleMapping {
+      case t if t =:= typeOf[JsValue] =>
+        val schema = new Schema
+        schema.setType("string")
+        schema.setFormat("json")
+        schema
+    }
   )
 
   @Bean

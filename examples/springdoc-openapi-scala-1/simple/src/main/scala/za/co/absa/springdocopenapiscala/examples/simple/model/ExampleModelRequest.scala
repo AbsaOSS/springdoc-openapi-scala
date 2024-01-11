@@ -16,4 +16,6 @@
 
 package za.co.absa.springdocopenapiscala.examples.simple.model
 
-case class ExampleModelRequest(a: Int, b: String, c: Option[Int])
+import com.fasterxml.jackson.databind.JsonNode
+
+case class ExampleModelRequest(a: Int, b: String, c: Option[Int], d: JsonNode)

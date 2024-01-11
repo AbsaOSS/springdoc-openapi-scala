@@ -23,7 +23,8 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       "za.co.absa" %% "springdoc-openapi-scala-1" % `springdoc-openapi-scala-1-version`,
       "org.springdoc" % "springdoc-openapi-webmvc-core" % "1.7.0",
-      "org.springframework.boot" % "spring-boot-starter-web" % "2.6.6"
+      "org.springframework.boot" % "spring-boot-starter-web" % "2.6.6",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.16.1"
     ),
     webappWebInfClasses := true,
     inheritJarManifest := true

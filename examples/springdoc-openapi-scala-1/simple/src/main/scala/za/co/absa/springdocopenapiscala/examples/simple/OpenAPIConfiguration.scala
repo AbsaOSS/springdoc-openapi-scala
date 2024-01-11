@@ -16,12 +16,15 @@
 
 package za.co.absa.springdocopenapiscala.examples.simple
 
+import com.fasterxml.jackson.databind.JsonNode
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.media.Schema
 import org.springdoc.core.customizers.OpenApiCustomiser
 import org.springframework.context.annotation.{Bean, Configuration}
-
 import za.co.absa.springdocopenapiscala.{Bundle, OpenAPIModelRegistration}
+
+import scala.reflect.runtime.universe.typeOf
 
 @Configuration
 class OpenAPIConfiguration {
@@ -33,7 +36,14 @@ class OpenAPIConfiguration {
           .title("Example API with springdoc-openapi v1.x")
           .version("1.0.0")
       )
-    )
+    ),
+    OpenAPIModelRegistration.ExtraTypesHandling.simpleMapping {
+      case t if t =:= typeOf[JsonNode] =>
+        val schema = new Schema
+        schema.setType("string")
+        schema.setFormat("json")
+        schema
+    }
   )
 
   @Bean
