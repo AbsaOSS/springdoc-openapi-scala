@@ -80,7 +80,7 @@ class OpenAPIScalaCustomizerSpec extends AnyFlatSpec {
     )
   }
 
-  it should "do nothing if a response contains no schema" in {
+  it should "do nothing if a response doesn't have content" in {
     val components = new Components()
     val openAPIScalaCustomizer = new OpenAPIScalaCustomizer(components)
 
@@ -111,7 +111,7 @@ class OpenAPIScalaCustomizerSpec extends AnyFlatSpec {
     )
   }
 
-  it should "do nothing if a response doesn't contain a schema" in {
+  it should "do nothing if a response doesn't have a schema" in {
     val components = new Components()
     val openAPIScalaCustomizer = new OpenAPIScalaCustomizer(components)
 
