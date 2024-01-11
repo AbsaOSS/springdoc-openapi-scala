@@ -39,11 +39,11 @@ class OpenAPIScalaCustomizer(components: Components) extends OpenApiCustomizer {
         val responses = operation.getResponses.asScala
         responses.foreach { case (_, response) =>
           val contentOpt = Option(response.getContent)
-          contentOpt.foreach(_.asScala.foreach { case (_, mediaType) =>
+          contentOpt.map(_.asScala.foreach { case (_, mediaType) =>
             val schemaOpt = Option(mediaType.getSchema)
-            schemaOpt.foreach { schema =>
+            schemaOpt.map { schema =>
               val isReturningUnit = schema.get$ref == "#/components/schemas/BoxedUnit"
-              if (isReturningUnit) mediaType.setSchema(None.orNull)
+              if (isReturningUnit) response.setContent(None.orNull)
             }
           })
         }
