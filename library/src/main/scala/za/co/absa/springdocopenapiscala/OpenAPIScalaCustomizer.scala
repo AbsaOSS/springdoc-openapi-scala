@@ -32,22 +32,22 @@ class OpenAPIScalaCustomizer(components: Components) extends OpenApiCustomizer {
   }
 
   private def fixResponsesReturningUnit(openAPI: OpenAPI): Unit = {
-    val currentPaths = openAPI.getPaths.asScala
-    currentPaths.foreach { case (_, path) =>
+    val currentPathsOpt = Option(openAPI.getPaths)
+    currentPathsOpt.foreach(_.asScala.foreach { case (_, path) =>
       val allOperations = path.readOperationsMap.asScala
       allOperations.foreach { case (_, operation) =>
         val responses = operation.getResponses.asScala
         responses.foreach { case (_, response) =>
           val contentOpt = Option(response.getContent)
-          contentOpt.map(_.asScala.foreach { case (_, mediaType) =>
+          contentOpt.foreach(_.asScala.foreach { case (_, mediaType) =>
             val schemaOpt = Option(mediaType.getSchema)
-            schemaOpt.map { schema =>
+            schemaOpt.foreach { schema =>
               val isReturningUnit = schema.get$ref == "#/components/schemas/BoxedUnit"
               if (isReturningUnit) response.setContent(None.orNull)
             }
           })
         }
       }
-    }
+    })
   }
 }

@@ -23,6 +23,7 @@ object Dependencies {
     val scala213 = "2.13.12"
 
     val scalatest = "3.2.15"
+    val mockito = "5.8.0"
 
     def springdocOpenapi(majorVersion: Int): String = majorVersion match {
       case 1 => "[1.6.7,1.7.0]"
@@ -41,7 +42,8 @@ object Dependencies {
       "org.scala-lang" % "scala-reflect" % scalaVersion,
       springdocOpenAPIDependency,
       "org.scalatest" %% "scalatest" % Versions.scalatest % Test,
-      "org.scalatest" %% "scalatest-flatspec" % Versions.scalatest % Test
+      "org.scalatest" %% "scalatest-flatspec" % Versions.scalatest % Test,
+      "org.mockito" % "mockito-core" % Versions.mockito % Test
     )
   }
 
