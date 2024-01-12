@@ -88,5 +88,6 @@ jobs:
         with:
           name: ${{ github.event.inputs.tagName }}
           body: ${{ steps.generate_release_notes.outputs.releaseNotes }}
+          tag_name: ${{ github.event.inputs.tagName }}
           draft: true
           prerelease: false
