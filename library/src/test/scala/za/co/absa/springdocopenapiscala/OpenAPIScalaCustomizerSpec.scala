@@ -80,4 +80,72 @@ class OpenAPIScalaCustomizerSpec extends AnyFlatSpec {
     )
   }
 
+  it should "do nothing if a response doesn't have content" in {
+    val components = new Components()
+    val openAPIScalaCustomizer = new OpenAPIScalaCustomizer(components)
+
+    val openAPI = new OpenAPI()
+      .paths(
+        new Paths()
+          .addPathItem(
+            "/api/endpoint",
+            new PathItem()
+              .delete(
+                new Operation()
+                  .responses(
+                    new ApiResponses()
+                      .addApiResponse(
+                        "204",
+                        new ApiResponse()
+                          .description("No Content")
+                      )
+                  )
+              )
+          )
+      )
+
+    openAPIScalaCustomizer.customise(openAPI)
+
+    assert(
+      Option(openAPI.getPaths.get("/api/endpoint").getDelete.getResponses.get("204").getContent).isEmpty
+    )
+  }
+
+  it should "do nothing if a response doesn't have a schema" in {
+    val components = new Components()
+    val openAPIScalaCustomizer = new OpenAPIScalaCustomizer(components)
+
+    val openAPI = new OpenAPI()
+      .paths(
+        new Paths()
+          .addPathItem(
+            "/api/endpoint",
+            new PathItem()
+              .delete(
+                new Operation()
+                  .responses(
+                    new ApiResponses()
+                      .addApiResponse(
+                        "204",
+                        new ApiResponse()
+                          .content(
+                            new Content()
+                              .addMediaType(
+                                "*/*",
+                                new MediaType()
+                              )
+                          )
+                      )
+                  )
+              )
+          )
+      )
+
+    openAPIScalaCustomizer.customise(openAPI)
+
+    assert(
+      Option(openAPI.getPaths.get("/api/endpoint").getDelete.getResponses.get("204").getContent).isDefined
+    )
+  }
+
 }
