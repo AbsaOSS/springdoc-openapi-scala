@@ -14,9 +14,10 @@
 # limitations under the License.
 #
 
-name: Release
+name: Release - publish artifacts
 on:
-  workflow_dispatch:
+  release:
+    types: [released]
 
 jobs:
   publish:
@@ -27,8 +28,9 @@ jobs:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v14
         with:
-          java-version: "adopt@1.8"
-      - run: sbt ci-release
+          java-version: "openjdk@1.17.0"
+      - name: Build and release to Sonatype and Maven Central
+        run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
