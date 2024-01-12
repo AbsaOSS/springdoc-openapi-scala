@@ -90,6 +90,15 @@ jobs:
           body: ${{ steps.generate_release_notes.outputs.releaseNotes }}
           draft: true
           prerelease: false
+
+  publish:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: refs/tags/${{ github.event.inputs.tagName }}
       - uses: olafurpg/setup-scala@v14
         with:
           java-version: "openjdk@1.17.0"
