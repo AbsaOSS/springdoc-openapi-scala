@@ -14,12 +14,12 @@
 # limitations under the License.
 #
 
-name: Release
+name: Release - create draft release
 on:
   workflow_dispatch:
     inputs:
       tagName:
-        description: 'Name of git tag to be created, and then released. Must have syntax "v[0-9]+.[0-9]+.[0-9]+".'
+        description: 'Name of git tag to be created, and then draft release created. Syntax: "v[0-9]+.[0-9]+.[0-9]+".'
         required: true
 
 jobs:
@@ -90,22 +90,3 @@ jobs:
           body: ${{ steps.generate_release_notes.outputs.releaseNotes }}
           draft: true
           prerelease: false
-
-  publish:
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: refs/tags/${{ github.event.inputs.tagName }}
-      - uses: olafurpg/setup-scala@v14
-        with:
-          java-version: "openjdk@1.17.0"
-      - name: Release to Sonatype and Maven Central
-        run: sbt ci-release
-        env:
-          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-          PGP_SECRET: ${{ secrets.PGP_SECRET }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
