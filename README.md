@@ -21,6 +21,7 @@ This library aims to avoid pollution of the model by custom annotations and depe
 - support for basic Scala collections (`Map`, `Seq`, `Set`, `Array`) as types of `case class` parameters
 - only top-level case classes need to be registered, child case classes are then recursively registered
 - support for Scala `Enumeration` where simple `Value` constructor is used (without `name`)
+- support for sum ADTs (`sealed trait` and `sealed abstract class`)
 
 ## Usage
 
@@ -266,11 +267,53 @@ Can be found in this repo: [link](examples/springdoc-openapi-scala-1/simple). It
   },
   "components": {
     "schemas": {
+      "IntLiteral": {
+        "required": [
+          "value"
+        ],
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "StringLiteral": {
+        "required": [
+          "value"
+        ],
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "Literal": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/IntLiteral"
+          },
+          {
+            "$ref": "#/components/schemas/StringLiteral"
+          }
+        ]
+      },
+      "Something": {},
+      "Expression": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Literal"
+          },
+          {
+            "$ref": "#/components/schemas/Something"
+          }
+        ]
+      },
       "ExampleModelRequest": {
         "required": [
           "a",
           "b",
-          "d"
+          "d",
+          "e"
         ],
         "properties": {
           "a": {
@@ -287,6 +330,12 @@ Can be found in this repo: [link](examples/springdoc-openapi-scala-1/simple). It
           "d": {
             "type": "string",
             "format": "json"
+          },
+          "e": {
+            "$ref": "#/components/schemas/Expression"
+          },
+          "f": {
+            "$ref": "#/components/schemas/Expression"
           }
         }
       },
