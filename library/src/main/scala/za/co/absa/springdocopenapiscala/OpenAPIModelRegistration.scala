@@ -105,10 +105,8 @@ class OpenAPIModelRegistration(
       val isOption = f.typeSignature <:< typeOf[Option[_]]
       if (!isOption) schema.addRequiredItem(fieldName)
     }
-    components.addSchemas(name, schema)
-    val schemaReference = new Schema
-    schemaReference.set$ref(s"#/components/schemas/$name")
-    schemaReference
+
+    registerAsReference(name, schema)
   }
 
   private def handleMap(tpe: Type): Schema[_] = {
@@ -146,11 +144,13 @@ class OpenAPIModelRegistration(
 
   private def handleSealedType(tpe: Type): Schema[_] = {
     val classSymbol = tpe.typeSymbol.asClass
+    val name = tpe.typeSymbol.name.toString.trim
     val children = classSymbol.knownDirectSubclasses
     val childrenSchemas = children.map(_.asType.toType).map(handleType)
     val schema = new Schema
     schema.setOneOf(childrenSchemas.toList.asJava)
-    schema
+
+    registerAsReference(name, schema)
   }
 
   private def handleSimpleType(tpe: Type): Schema[_] = {
@@ -177,6 +177,13 @@ class OpenAPIModelRegistration(
     case t if t =:= typeOf[Instant]       => OpenAPISimpleType("string", Some("date-time"))
     case t if t =:= typeOf[LocalDateTime] => OpenAPISimpleType("string", Some("date-time"))
     case t if t =:= typeOf[LocalDate]     => OpenAPISimpleType("string", Some("date"))
+  }
+
+  private def registerAsReference(name: String, schema: Schema[_]): Schema[_] = {
+    components.addSchemas(name, schema)
+    val schemaReference = new Schema
+    schemaReference.set$ref(s"#/components/schemas/$name")
+    schemaReference
   }
 
 }

@@ -18,4 +18,27 @@ package za.co.absa.springdocopenapiscala.examples.simple.model
 
 import com.fasterxml.jackson.databind.JsonNode
 
-case class ExampleModelRequest(a: Int, b: String, c: Option[Int], d: JsonNode)
+case class ExampleModelRequest(
+  a: Int,
+  b: String,
+  c: Option[Int],
+  d: JsonNode,
+  e: ExampleModelRequest.Expression,
+  f: Option[ExampleModelRequest.Expression]
+)
+
+object ExampleModelRequest {
+
+  sealed trait Expression
+
+  object Expression {
+    case object Something extends Expression
+    sealed trait Literal extends Expression
+
+    object Literal {
+      case class StringLiteral(value: String) extends Literal
+      case class IntLiteral(value: String) extends Literal
+    }
+  }
+
+}

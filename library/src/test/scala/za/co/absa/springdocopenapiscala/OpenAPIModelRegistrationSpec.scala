@@ -270,7 +270,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     assertEnumIsStringAndHasFollowingOptions(actualSchemas, "EnumsWithRenaming.a", Set("PIZZA", "TV", "RADIO"))
   }
 
-  it should "make sealed type an OpenAPI schema with the oneOf attribute" in {
+  it should "make sealed type an OpenAPI schema (reference) with the oneOf attribute" in {
     val components = new Components
     val openAPIModelRegistration = new OpenAPIModelRegistration(components)
 
@@ -278,13 +278,14 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
     val actualSchemas = components.getSchemas
 
+    assertRefIsAsExpected(actualSchemas, "SumTypeClass.a", "#/components/schemas/SealedTrait")
+
     assertTypeAndFormatAreAsExpected(actualSchemas, "SealedTraitVariant1.a", "string")
-    assertTypeAndFormatAreAsExpected(actualSchemas, "SealedTraitVariant2.a", "integer",
-      Some("int32"))
+    assertTypeAndFormatAreAsExpected(actualSchemas, "SealedTraitVariant2.a", "integer", Some("int32"))
 
     assertPredicateForPath(
       actualSchemas,
-      "SumTypeClass.a",
+      "SealedTrait",
       schema => {
         val actualOneOf = schema.getOneOf.asScala
         val expectedOneOf = Seq(
@@ -296,7 +297,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     )
   }
 
-  it should "make sealed abstract class with case object an OpenAPI schema with the oneOf attribute" in {
+  it should "make sealed abstract class with case object an OpenAPI schema (reference) with the oneOf attribute" in {
     val components = new Components
     val openAPIModelRegistration = new OpenAPIModelRegistration(components)
 
@@ -304,13 +305,19 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
     val actualSchemas = components.getSchemas
 
-    assertTypeAndFormatAreAsExpected(actualSchemas,"SealedAbstractClassVariant.a", "string")
+    assertRefIsAsExpected(
+      actualSchemas,
+      "SumTypeClassWithSealedAbstractClass.a",
+      "#/components/schemas/SealedAbstractClass"
+    )
+
+    assertTypeAndFormatAreAsExpected(actualSchemas, "SealedAbstractClassVariant.a", "string")
     assert(actualSchemas.containsKey("SealedAbstractClassCaseObject"))
     assert(Option(actualSchemas.get("SealedAbstractClassCaseObject").getProperties).isEmpty)
 
     assertPredicateForPath(
       actualSchemas,
-      "SumTypeClassWithSealedAbstractClass.a",
+      "SealedAbstractClass",
       schema => {
         val actualOneOf = schema.getOneOf.asScala
         val expectedOneOf = Seq(
@@ -330,9 +337,15 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
     val actualSchemas = components.getSchemas
 
-    assertPredicateForPath(
+    assertRefIsAsExpected(
       actualSchemas,
       "EmptySealedTraitClass.a",
+      "#/components/schemas/EmptySealedTrait"
+    )
+
+    assertPredicateForPath(
+      actualSchemas,
+      "EmptySealedTrait",
       schema => {
         val actualOneOf = schema.getOneOf.asScala
         val expectedOneOf = Seq()
