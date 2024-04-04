@@ -95,6 +95,7 @@ class OpenAPIModelRegistration(
   private def handleCaseType(tpe: Type): Schema[_] = {
     val name = tpe.typeSymbol.name.toString.trim
     val schema = new Schema
+    schema.setType("object")
     val fields = tpe.decls.collect {
       case field: TermSymbol if field.isVal => field
     }

@@ -161,6 +161,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
     val actualSchemas = components.getSchemas
 
+    assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes", "object")
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.a", "string")
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.b", "integer", Some("int32"))
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.c", "integer", Some("int32"))
@@ -186,6 +187,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
     val actualSchemas = components.getSchemas
 
+    assertTypeAndFormatAreAsExpected(actualSchemas, "SimpleTypesMaybeInOption", "object")
     assertTypeAndFormatAreAsExpected(actualSchemas, "SimpleTypesMaybeInOption.a", "string")
     assertTypeAndFormatAreAsExpected(actualSchemas, "SimpleTypesMaybeInOption.b", "string")
     assertTypeAndFormatAreAsExpected(actualSchemas, "SimpleTypesMaybeInOption.c", "integer", Some("int32"))
@@ -206,12 +208,15 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
     val actualSchemas = components.getSchemas
 
+    assertTypeAndFormatAreAsExpected(actualSchemas, "ChildChildCaseClass", "object")
     assertTypeAndFormatAreAsExpected(actualSchemas, "ChildChildCaseClass.a", "string")
 
+    assertTypeAndFormatAreAsExpected(actualSchemas, "ChildCaseClass", "object")
     assertTypeAndFormatAreAsExpected(actualSchemas, "ChildCaseClass.a", "string")
     assertTypeAndFormatAreAsExpected(actualSchemas, "ChildCaseClass.b", "integer", Some("int32"))
     assertRefIsAsExpected(actualSchemas, "ChildCaseClass.child", "#/components/schemas/ChildChildCaseClass")
 
+    assertTypeAndFormatAreAsExpected(actualSchemas, "ParentCaseClass", "object")
     assertRefIsAsExpected(actualSchemas, "ParentCaseClass.child", "#/components/schemas/ChildCaseClass")
     assertTypeAndFormatAreAsExpected(actualSchemas, "ParentCaseClass.other", "string")
   }
@@ -313,6 +318,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
     assertTypeAndFormatAreAsExpected(actualSchemas, "SealedAbstractClassVariant.a", "string")
     assert(actualSchemas.containsKey("SealedAbstractClassCaseObject"))
+    assertTypeAndFormatAreAsExpected(actualSchemas, "SealedAbstractClassCaseObject", "object")
     assert(Option(actualSchemas.get("SealedAbstractClassCaseObject").getProperties).isEmpty)
 
     assertPredicateForPath(
