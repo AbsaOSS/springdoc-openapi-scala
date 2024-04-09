@@ -21,7 +21,7 @@ This library aims to avoid pollution of the model by custom annotations and depe
 - support for basic Scala collections (`Map`, `Seq`, `Set`, `Array`) as types of `case class` parameters
 - only top-level case classes need to be registered, child case classes are then recursively registered
 - support for Scala `Enumeration` where simple `Value` constructor is used (without `name`)
-- support for sum ADTs (`sealed trait` and `sealed abstract class`)
+- support for sum ADTs (`sealed trait` and `sealed abstract class`) with optional discriminator
 
 ## Usage
 
@@ -215,6 +215,29 @@ Then, in `handleFn`, the handler creates a `Schema` object for `CustomClass`,
 adds it to `Components` so that it can be referenced by name `CustomClass`,
 and returns reference to that object.
 
+### Registration configuration
+It is possible to further customize registration by providing custom `RegistrationConfig` to `OpenAPIModelRegistration`.
+
+#### Example
+```scala
+val components = ...
+val registration = OpenAPIModelRegistration(
+  components,
+  config = RegistrationConfig(
+    OpenAPIModelRegistration.RegistrationConfig(
+      sumADTsShape = OpenAPIModelRegistration.RegistrationConfig.SumADTsShape.WithDiscriminator()
+    )
+  )
+)
+```
+
+#### sumADTsShape
+This config property sets how sum ADTs are registered. It has two possible values:
+- `RegistrationConfig.SumADTsShape.WithoutDiscriminator` - default option, doesn't add discriminators
+- `RegistrationConfig.SumADTsShape.WithDiscriminator(discriminatorPropertyNameFn)` - adds discriminator to sealed types schema,
+   and also adds discriminator to sum ADTs elements properties; discriminator property name is customizable by `discriminatorPropertyNameFn`,
+   by default it takes sealed type name, converts its first letter to lower case, and adds `"Type"` suffix,
+   for example if sealed type name is `Expression`, the property name is `expressionType`
 
 ## Examples
 

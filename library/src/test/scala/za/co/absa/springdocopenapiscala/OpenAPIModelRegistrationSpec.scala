@@ -132,6 +132,21 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
   private case class EmptySealedTraitClass(a: EmptySealedTrait)
 
+  private sealed trait NestedSealedTrait
+
+  private object NestedSealedTrait {
+    case class NestedSealedTraitVariant1(a: String, b: Int) extends NestedSealedTrait
+    case object NestedSealedTraitVariant2 extends NestedSealedTrait
+
+    sealed abstract class NestedSealedTraitVariant3 extends NestedSealedTrait
+
+    object NestedSealedTraitVariant3 {
+      case class NestedSealedTraitVariant3Subvariant1(a: Float) extends NestedSealedTraitVariant3
+      case object NestedSealedTraitVariant3Subvariant2 extends NestedSealedTraitVariant3
+    }
+
+  }
+
   private case class CustomClassComplexChild(a: Option[Int])
 
   private class CustomClass(val complexChild: CustomClassComplexChild) {
@@ -335,6 +350,153 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     )
   }
 
+  it should "add discriminator to sealed types and corresponding discriminator property to their children " +
+    "if SumADTsShape is WithDiscriminator (with default DiscriminatorPropertyNameFn) in the config" in {
+      val components = new Components
+      val openAPIModelRegistration = new OpenAPIModelRegistration(
+        components,
+        config = OpenAPIModelRegistration.RegistrationConfig(
+          sumADTsShape = OpenAPIModelRegistration.RegistrationConfig.SumADTsShape.WithDiscriminator()
+        )
+      )
+
+      openAPIModelRegistration.register[NestedSealedTrait]()
+
+      val actualSchemas = components.getSchemas
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTrait",
+        schema => {
+          val actualDiscriminator = schema.getDiscriminator
+          val actualOneOf = schema.getOneOf.asScala
+          val expectedOneOf = Seq(
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant1"),
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant2"),
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant3")
+          )
+
+          val isPropertyNameCorrect = actualDiscriminator.getPropertyName === "nestedSealedTraitType"
+          val isMappingEmpty = Option(actualDiscriminator.getMapping).map(_.isEmpty).getOrElse(true)
+          val isOneOfCorrect = actualOneOf === expectedOneOf
+
+          isPropertyNameCorrect && isMappingEmpty && isOneOfCorrect
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant1",
+        schema => {
+          val actualProperties = schema.getProperties.asScala
+
+          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a") && actualProperties.contains("b")
+          val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitType") && {
+            val s = actualProperties("nestedSealedTraitType")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant1")
+          }
+          val isDiscriminatorPropertyRequired = schema.getRequired.contains("nestedSealedTraitType")
+          val isCountOfPropertiesCorrect = actualProperties.size === 3
+
+          areNonDiscriminatorPropertiesCorrect &&
+          isDiscriminatorPropertyCorrect &&
+          isDiscriminatorPropertyRequired &&
+          isCountOfPropertiesCorrect
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant2",
+        schema => {
+          val actualProperties = schema.getProperties.asScala
+
+          val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitType") && {
+            val s = actualProperties("nestedSealedTraitType")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant2")
+          }
+          val isDiscriminatorPropertyRequired = schema.getRequired.contains("nestedSealedTraitType")
+          val isCountOfPropertiesCorrect = actualProperties.size === 1
+
+          isDiscriminatorPropertyCorrect && isDiscriminatorPropertyRequired && isCountOfPropertiesCorrect
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant3",
+        schema => {
+          val actualDiscriminator = schema.getDiscriminator
+          val actualOneOf = schema.getOneOf.asScala
+          val expectedOneOf = Seq(
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant3Subvariant1"),
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant3Subvariant2")
+          )
+
+          val isPropertyNameCorrect = actualDiscriminator.getPropertyName === "nestedSealedTraitVariant3Type"
+          val isMappingEmpty = Option(actualDiscriminator.getMapping).map(_.isEmpty).getOrElse(true)
+          val isOneOfCorrect = actualOneOf === expectedOneOf
+          val isParentDiscriminatorNotInProperties = Option(schema.getProperties).map(_.size == 0).getOrElse(true)
+
+          isPropertyNameCorrect && isMappingEmpty && isOneOfCorrect && isParentDiscriminatorNotInProperties
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant3Subvariant1",
+        schema => {
+          val actualProperties = schema.getProperties.asScala
+
+          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a")
+          val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitVariant3Type") && {
+            val s = actualProperties("nestedSealedTraitVariant3Type")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant3Subvariant1")
+          }
+          val isParentDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitType") && {
+            val s = actualProperties("nestedSealedTraitType")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant3")
+          }
+          val areDiscriminatorPropertyRequired = schema.getRequired.contains(
+            "nestedSealedTraitVariant3Type"
+          ) && schema.getRequired.contains("nestedSealedTraitType")
+          val isCountOfPropertiesCorrect = actualProperties.size === 3
+
+          areNonDiscriminatorPropertiesCorrect &&
+          isDiscriminatorPropertyCorrect &&
+          isParentDiscriminatorPropertyCorrect &&
+          areDiscriminatorPropertyRequired &&
+          isCountOfPropertiesCorrect
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant3Subvariant2",
+        schema => {
+          val actualProperties = schema.getProperties.asScala
+
+          val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitVariant3Type") && {
+            val s = actualProperties("nestedSealedTraitVariant3Type")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant3Subvariant2")
+          }
+          val isParentDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitType") && {
+            val s = actualProperties("nestedSealedTraitType")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant3")
+          }
+          val areDiscriminatorPropertyRequired = schema.getRequired.contains(
+            "nestedSealedTraitVariant3Type"
+          ) && schema.getRequired.contains("nestedSealedTraitType")
+          val isCountOfPropertiesCorrect = actualProperties.size === 2
+
+          isDiscriminatorPropertyCorrect &&
+          isParentDiscriminatorPropertyCorrect &&
+          isCountOfPropertiesCorrect &&
+          areDiscriminatorPropertyRequired
+        }
+      )
+    }
+
   it should "not fail for empty sealed trait" in {
     val components = new Components
     val openAPIModelRegistration = new OpenAPIModelRegistration(components)
@@ -389,7 +551,10 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
           }
           (Set.empty, handleFn)
       }
-    val openAPIModelRegistration = new OpenAPIModelRegistration(components, extraTypesHandler)
+    val openAPIModelRegistration = new OpenAPIModelRegistration(
+      components,
+      extraTypesHandler = extraTypesHandler
+    )
 
     openAPIModelRegistration.register[ForCustomHandling]()
 
@@ -440,7 +605,10 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
           schema.setFormat("my-custom-format")
           schema
       }
-      val openAPIModelRegistration = new OpenAPIModelRegistration(components, extraTypesHandler)
+      val openAPIModelRegistration = new OpenAPIModelRegistration(
+        components,
+        extraTypesHandler = extraTypesHandler
+      )
 
       openAPIModelRegistration.register[SimpleTypesMaybeInOption]()
 
