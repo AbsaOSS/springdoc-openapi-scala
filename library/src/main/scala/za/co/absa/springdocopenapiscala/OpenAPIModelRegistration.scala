@@ -148,6 +148,7 @@ class OpenAPIModelRegistration(
     def addDiscriminatorPropertyToChildren(
       currentSchema: Schema[_],
       discriminatorPropertyName: String,
+      addOnlyToDirectChildren: Boolean,
       discriminatorValue: Option[String] = None
     ): Unit = {
       val children = currentSchema.getOneOf.asScala
@@ -159,10 +160,11 @@ class OpenAPIModelRegistration(
           val constEnumSchema = createConstEnumSchema(discriminatorValue.getOrElse(name))
           actualSchema.addProperty(discriminatorPropertyName, constEnumSchema)
           actualSchema.addRequiredItem(discriminatorPropertyName)
-        } else if (Option(actualSchema.getOneOf).map(!_.isEmpty).getOrElse(false)) {
+        } else if (!addOnlyToDirectChildren && Option(actualSchema.getOneOf).map(!_.isEmpty).getOrElse(false)) {
           addDiscriminatorPropertyToChildren(
             actualSchema,
             discriminatorPropertyName,
+            addOnlyToDirectChildren,
             Some(name)
           )
         }
@@ -177,14 +179,18 @@ class OpenAPIModelRegistration(
     schema.setOneOf(childrenSchemas.toList.asJava)
 
     config.sumADTsShape match {
-      case RegistrationConfig.SumADTsShape.WithDiscriminator(discriminatorPropertyNameFn) =>
+      case RegistrationConfig.SumADTsShape.WithDiscriminator(discriminatorPropertyNameFn, addOnlyToDirectChildren) =>
         val discriminatorPropertyName = discriminatorPropertyNameFn(name)
         schema.setDiscriminator {
           val discriminator = new Discriminator
           discriminator.setPropertyName(discriminatorPropertyName)
           discriminator
         }
-        addDiscriminatorPropertyToChildren(schema, discriminatorPropertyName)
+        addDiscriminatorPropertyToChildren(
+          schema,
+          discriminatorPropertyName,
+          addOnlyToDirectChildren
+        )
 
       case _ => ()
     }
@@ -257,7 +263,8 @@ object OpenAPIModelRegistration {
       case object WithoutDiscriminator extends SumADTsShape
       case class WithDiscriminator(
         discriminatorPropertyNameFn: WithDiscriminator.DiscriminatorPropertyNameFn =
-          WithDiscriminator.defaultDiscriminatorPropertyNameFn
+          WithDiscriminator.defaultDiscriminatorPropertyNameFn,
+        addDiscriminatorPropertyOnlyToDirectChildren: Boolean = true
       ) extends SumADTsShape
 
       object WithDiscriminator {

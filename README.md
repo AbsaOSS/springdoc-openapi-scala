@@ -234,10 +234,16 @@ val registration = OpenAPIModelRegistration(
 #### sumADTsShape
 This config property sets how sum ADTs are registered. It has two possible values:
 - `RegistrationConfig.SumADTsShape.WithoutDiscriminator` - default option, doesn't add discriminators
-- `RegistrationConfig.SumADTsShape.WithDiscriminator(discriminatorPropertyNameFn)` - adds discriminator to sealed types schema,
+- `RegistrationConfig.SumADTsShape.WithDiscriminator(discriminatorPropertyNameFn, addDiscriminatorPropertyOnlyToDirectChildren)` - 
+   adds discriminator to sealed types schema,
    and also adds discriminator to sum ADTs elements properties; discriminator property name is customizable by `discriminatorPropertyNameFn`,
    by default it takes sealed type name, converts its first letter to lower case, and adds `"Type"` suffix,
-   for example if sealed type name is `Expression`, the property name is `expressionType`
+   for example if sealed type name is `Expression`, the property name is `expressionType`;
+   if `addDiscriminatorPropertyOnlyToDirectChildren` is `false`, discriminator property is added to all children,
+   so for example in `ADT = A | B | C; B = D | E` discriminator of `ADT` would be added to `A`, `C`, `D`, `E`
+   (`D` and `E` would have discriminator of `B` in addition to that) 
+   while with  `addDiscriminatorPropertyOnlyToDirectChildren` set to `true` (default) 
+   it would be added only to `A` and `C`
 
 ## Examples
 

@@ -350,13 +350,16 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     )
   }
 
-  it should "add discriminator to sealed types and corresponding discriminator property to their children " +
+  it should "add discriminator to sealed types " +
+    "and discriminator property to all children (if addDiscriminatorPropertyOnlyToDirectChildren is false)" +
     "if SumADTsShape is WithDiscriminator (with default DiscriminatorPropertyNameFn) in the config" in {
       val components = new Components
       val openAPIModelRegistration = new OpenAPIModelRegistration(
         components,
         config = OpenAPIModelRegistration.RegistrationConfig(
-          sumADTsShape = OpenAPIModelRegistration.RegistrationConfig.SumADTsShape.WithDiscriminator()
+          sumADTsShape = OpenAPIModelRegistration.RegistrationConfig.SumADTsShape.WithDiscriminator(
+            addDiscriminatorPropertyOnlyToDirectChildren = false
+          )
         )
       )
 
@@ -493,6 +496,146 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
           isParentDiscriminatorPropertyCorrect &&
           isCountOfPropertiesCorrect &&
           areDiscriminatorPropertyRequired
+        }
+      )
+    }
+
+  it should "add discriminator to sealed types " +
+    "and discriminator property to direct children (if addDiscriminatorPropertyOnlyToDirectChildren is true)" +
+    "if SumADTsShape is WithDiscriminator (with default DiscriminatorPropertyNameFn) in the config" in {
+      val components = new Components
+      val openAPIModelRegistration = new OpenAPIModelRegistration(
+        components,
+        config = OpenAPIModelRegistration.RegistrationConfig(
+          sumADTsShape = OpenAPIModelRegistration.RegistrationConfig.SumADTsShape.WithDiscriminator(
+            addDiscriminatorPropertyOnlyToDirectChildren = true
+          )
+        )
+      )
+
+      openAPIModelRegistration.register[NestedSealedTrait]()
+
+      val actualSchemas = components.getSchemas
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTrait",
+        schema => {
+          val actualDiscriminator = schema.getDiscriminator
+          val actualOneOf = schema.getOneOf.asScala
+          val expectedOneOf = Seq(
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant1"),
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant2"),
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant3")
+          )
+
+          val isPropertyNameCorrect = actualDiscriminator.getPropertyName === "nestedSealedTraitType"
+          val isMappingEmpty = Option(actualDiscriminator.getMapping).map(_.isEmpty).getOrElse(true)
+          val isOneOfCorrect = actualOneOf === expectedOneOf
+
+          isPropertyNameCorrect && isMappingEmpty && isOneOfCorrect
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant1",
+        schema => {
+          val actualProperties = schema.getProperties.asScala
+
+          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a") && actualProperties.contains("b")
+          val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitType") && {
+            val s = actualProperties("nestedSealedTraitType")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant1")
+          }
+          val isDiscriminatorPropertyRequired = schema.getRequired.contains("nestedSealedTraitType")
+          val isCountOfPropertiesCorrect = actualProperties.size === 3
+
+          areNonDiscriminatorPropertiesCorrect &&
+          isDiscriminatorPropertyCorrect &&
+          isDiscriminatorPropertyRequired &&
+          isCountOfPropertiesCorrect
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant2",
+        schema => {
+          val actualProperties = schema.getProperties.asScala
+
+          val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitType") && {
+            val s = actualProperties("nestedSealedTraitType")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant2")
+          }
+          val isDiscriminatorPropertyRequired = schema.getRequired.contains("nestedSealedTraitType")
+          val isCountOfPropertiesCorrect = actualProperties.size === 1
+
+          isDiscriminatorPropertyCorrect && isDiscriminatorPropertyRequired && isCountOfPropertiesCorrect
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant3",
+        schema => {
+          val actualDiscriminator = schema.getDiscriminator
+          val actualOneOf = schema.getOneOf.asScala
+          val expectedOneOf = Seq(
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant3Subvariant1"),
+            new Schema().$ref("#/components/schemas/NestedSealedTraitVariant3Subvariant2")
+          )
+
+          val isPropertyNameCorrect = actualDiscriminator.getPropertyName === "nestedSealedTraitVariant3Type"
+          val isMappingEmpty = Option(actualDiscriminator.getMapping).map(_.isEmpty).getOrElse(true)
+          val isOneOfCorrect = actualOneOf === expectedOneOf
+          val isParentDiscriminatorNotInProperties = Option(schema.getProperties).map(_.size == 0).getOrElse(true)
+
+          isPropertyNameCorrect && isMappingEmpty && isOneOfCorrect && isParentDiscriminatorNotInProperties
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant3Subvariant1",
+        schema => {
+          val actualProperties = schema.getProperties.asScala
+
+          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a")
+          val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitVariant3Type") && {
+            val s = actualProperties("nestedSealedTraitVariant3Type")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant3Subvariant1")
+          }
+          val isParentDiscriminatorNotInProperties = !actualProperties.contains("nestedSealedTraitType")
+          val isDiscriminatorPropertyRequired = schema.getRequired.contains("nestedSealedTraitVariant3Type")
+          val isCountOfPropertiesCorrect = actualProperties.size === 2
+
+          areNonDiscriminatorPropertiesCorrect &&
+          isDiscriminatorPropertyCorrect &&
+          isParentDiscriminatorNotInProperties &&
+          isDiscriminatorPropertyRequired &&
+          isCountOfPropertiesCorrect
+        }
+      )
+
+      assertPredicateForPath(
+        actualSchemas,
+        "NestedSealedTraitVariant3Subvariant2",
+        schema => {
+          val actualProperties = schema.getProperties.asScala
+
+          val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitVariant3Type") && {
+            val s = actualProperties("nestedSealedTraitVariant3Type")
+            s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant3Subvariant2")
+          }
+          val isParentDiscriminatorNotInProperties = !actualProperties.contains("nestedSealedTraitType")
+          val isDiscriminatorPropertyRequired = schema.getRequired.contains("nestedSealedTraitVariant3Type")
+          val isCountOfPropertiesCorrect = actualProperties.size === 1
+
+          isDiscriminatorPropertyCorrect &&
+          isParentDiscriminatorNotInProperties &&
+          isCountOfPropertiesCorrect &&
+          isDiscriminatorPropertyRequired
         }
       )
     }
