@@ -160,7 +160,10 @@ class OpenAPIModelRegistration(
           val constEnumSchema = createConstEnumSchema(discriminatorValue.getOrElse(name))
           actualSchema.addProperty(discriminatorPropertyName, constEnumSchema)
           actualSchema.addRequiredItem(discriminatorPropertyName)
-        } else if (!addOnlyToDirectChildren && Option(actualSchema.getOneOf).map(!_.isEmpty).getOrElse(false)) {
+        } else if (
+          !addOnlyToDirectChildren &&
+          Option(actualSchema.getOneOf).map(!_.isEmpty).getOrElse(false) // is schema representing another sum ADT root
+        ) {
           addDiscriminatorPropertyToChildren(
             actualSchema,
             discriminatorPropertyName,

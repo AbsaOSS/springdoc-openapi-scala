@@ -225,7 +225,9 @@ val registration = OpenAPIModelRegistration(
   components,
   config = RegistrationConfig(
     OpenAPIModelRegistration.RegistrationConfig(
-      sumADTsShape = OpenAPIModelRegistration.RegistrationConfig.SumADTsShape.WithDiscriminator()
+      sumADTsShape =
+         // default values apply for discriminatorPropertyNameFn, addDiscriminatorPropertyOnlyToDirectChildren
+         OpenAPIModelRegistration.RegistrationConfig.SumADTsShape.WithDiscriminator()
     )
   )
 )
