@@ -22,7 +22,7 @@ import io.swagger.v3.oas.models.media.Schema
 import org.scalatest
 import org.scalatest.flatspec.AnyFlatSpec
 
-import java.time.{Instant, LocalDate, LocalDateTime, ZonedDateTime}
+import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe._
@@ -46,7 +46,8 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     l: ZonedDateTime,
     o: Instant,
     p: LocalDateTime,
-    r: LocalDate
+    r: LocalDate,
+    s: LocalTime
   )
 
   private case class SimpleTypesMaybeInOption(
@@ -177,6 +178,8 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.o", "string", Some("date-time"))
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.p", "string", Some("date-time"))
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.r", "string", Some("date"))
+    assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.s", "string", Some("time"))
+    assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.t", "string", Some("duration"))
   }
 
   it should "mark all non-Option fields of case class as required" in {
