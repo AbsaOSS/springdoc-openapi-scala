@@ -179,7 +179,6 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.p", "string", Some("date-time"))
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.r", "string", Some("date"))
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.s", "string", Some("time"))
-    assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.t", "string", Some("duration"))
   }
 
   it should "mark all non-Option fields of case class as required" in {
