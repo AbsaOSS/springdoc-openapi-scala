@@ -17,19 +17,19 @@
 package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.Components
-import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.media.{Discriminator, Schema}
 
 import java.time.{Instant, LocalDate, LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe._
-
 import OpenAPIModelRegistration._
 
 class OpenAPIModelRegistration(
   components: Components,
-  extraTypesHandler: ExtraTypesHandling.ExtraTypesHandler = ExtraTypesHandling.noExtraHandling
+  extraTypesHandler: ExtraTypesHandling.ExtraTypesHandler = ExtraTypesHandling.noExtraHandling,
+  config: RegistrationConfig = RegistrationConfig()
 ) {
 
   /**
@@ -144,12 +144,59 @@ class OpenAPIModelRegistration(
     s.isTerm && s.asTerm.isVal && s.typeSignature <:< typeOf[Enumeration#Value]
 
   private def handleSealedType(tpe: Type): Schema[_] = {
+
+    def addDiscriminatorPropertyToChildren(
+      currentSchema: Schema[_],
+      discriminatorPropertyName: String,
+      addOnlyToDirectChildren: Boolean,
+      discriminatorValue: Option[String] = None
+    ): Unit = {
+      val children = currentSchema.getOneOf.asScala
+      children.foreach { s =>
+        val ref = s.get$ref
+        val name = extractSchemaNameFromRef(ref)
+        val actualSchema = components.getSchemas.get(name)
+        if (actualSchema.getType == "object") {
+          val constEnumSchema = createConstEnumSchema(discriminatorValue.getOrElse(name))
+          actualSchema.addProperty(discriminatorPropertyName, constEnumSchema)
+          actualSchema.addRequiredItem(discriminatorPropertyName)
+        } else if (
+          !addOnlyToDirectChildren &&
+          Option(actualSchema.getOneOf).map(!_.isEmpty).getOrElse(false) // is schema representing another sum ADT root
+        ) {
+          addDiscriminatorPropertyToChildren(
+            actualSchema,
+            discriminatorPropertyName,
+            addOnlyToDirectChildren,
+            Some(name)
+          )
+        }
+      }
+    }
+
     val classSymbol = tpe.typeSymbol.asClass
     val name = tpe.typeSymbol.name.toString.trim
     val children = classSymbol.knownDirectSubclasses
     val childrenSchemas = children.map(_.asType.toType).map(handleType)
     val schema = new Schema
     schema.setOneOf(childrenSchemas.toList.asJava)
+
+    config.sumADTsShape match {
+      case RegistrationConfig.SumADTsShape.WithDiscriminator(discriminatorPropertyNameFn, addOnlyToDirectChildren) =>
+        val discriminatorPropertyName = discriminatorPropertyNameFn(name)
+        schema.setDiscriminator {
+          val discriminator = new Discriminator
+          discriminator.setPropertyName(discriminatorPropertyName)
+          discriminator
+        }
+        addDiscriminatorPropertyToChildren(
+          schema,
+          discriminatorPropertyName,
+          addOnlyToDirectChildren
+        )
+
+      case _ => ()
+    }
 
     registerAsReference(name, schema)
   }
@@ -187,9 +234,53 @@ class OpenAPIModelRegistration(
     schemaReference
   }
 
+  private def createConstEnumSchema(const: String): Schema[_] = {
+    val constEnumSchema = new Schema[String]
+    constEnumSchema.setType("string")
+    constEnumSchema.setEnum(Seq(const).asJava)
+    constEnumSchema
+  }
+
+  private def extractSchemaNameFromRef(ref: String): String = {
+    ref.substring(ref.lastIndexOf("/") + 1)
+  }
+
 }
 
 object OpenAPIModelRegistration {
+
+  /**
+   *  Configuration of the registration class.
+   *
+   *  @param sumADTsShape how sum ADTs should be registered (with or without discriminator)
+   */
+  case class RegistrationConfig(
+    sumADTsShape: RegistrationConfig.SumADTsShape = RegistrationConfig.SumADTsShape.WithoutDiscriminator
+  )
+
+  object RegistrationConfig {
+
+    sealed abstract class SumADTsShape
+
+    object SumADTsShape {
+      case object WithoutDiscriminator extends SumADTsShape
+      case class WithDiscriminator(
+        discriminatorPropertyNameFn: WithDiscriminator.DiscriminatorPropertyNameFn =
+          WithDiscriminator.defaultDiscriminatorPropertyNameFn,
+        addDiscriminatorPropertyOnlyToDirectChildren: Boolean = true
+      ) extends SumADTsShape
+
+      object WithDiscriminator {
+
+        /** Function from sealed type name to discriminator property name. */
+        type DiscriminatorPropertyNameFn = String => String
+
+        val defaultDiscriminatorPropertyNameFn: DiscriminatorPropertyNameFn = sealedTypeName =>
+          sealedTypeName.head.toLower + sealedTypeName.tail + "Type"
+      }
+    }
+
+  }
 
   /**
    *  Context of model registration.
