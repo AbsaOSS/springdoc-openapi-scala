@@ -19,7 +19,7 @@ package za.co.absa.springdocopenapiscala
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.media.{Discriminator, Schema}
 
-import java.time.{Instant, LocalDate, LocalDateTime, ZonedDateTime}
+import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -242,6 +242,7 @@ class OpenAPIModelRegistration(
     case t if t =:= typeOf[Instant]       => OpenAPISimpleType("string", Some("date-time"))
     case t if t =:= typeOf[LocalDateTime] => OpenAPISimpleType("string", Some("date-time"))
     case t if t =:= typeOf[LocalDate]     => OpenAPISimpleType("string", Some("date"))
+    case t if t =:= typeOf[LocalTime]     => OpenAPISimpleType("string", Some("time"))
   }
 
   private def registerAsReference(name: String, schema: Schema[_]): Schema[_] = {
