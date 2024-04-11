@@ -149,7 +149,8 @@ class OpenAPIModelRegistration(
       currentSchema: Schema[_],
       discriminatorPropertyName: String,
       addOnlyToDirectChildren: Boolean,
-      discriminatorValue: Option[String] = None
+      discriminatorValue: Option[String] = None,
+      seen: Set[String] = Set.empty
     ): Unit = {
       val children = currentSchema.getOneOf.asScala
       children.foreach { s =>
@@ -162,13 +163,15 @@ class OpenAPIModelRegistration(
           actualSchema.addRequiredItem(discriminatorPropertyName)
         } else if (
           !addOnlyToDirectChildren &&
+          !seen.contains(name) &&
           Option(actualSchema.getOneOf).map(!_.isEmpty).getOrElse(false) // is schema representing another sum ADT root
         ) {
           addDiscriminatorPropertyToChildren(
             actualSchema,
             discriminatorPropertyName,
             addOnlyToDirectChildren,
-            Some(name)
+            Some(name),
+            seen + name
           )
         }
       }
@@ -176,29 +179,43 @@ class OpenAPIModelRegistration(
 
     val classSymbol = tpe.typeSymbol.asClass
     val name = tpe.typeSymbol.name.toString.trim
-    val children = classSymbol.knownDirectSubclasses
-    val childrenSchemas = children.map(_.asType.toType).map(handleType)
-    val schema = new Schema
-    schema.setOneOf(childrenSchemas.toList.asJava)
 
-    config.sumADTsShape match {
-      case RegistrationConfig.SumADTsShape.WithDiscriminator(discriminatorPropertyNameFn, addOnlyToDirectChildren) =>
-        val discriminatorPropertyName = discriminatorPropertyNameFn(name)
-        schema.setDiscriminator {
-          val discriminator = new Discriminator
-          discriminator.setPropertyName(discriminatorPropertyName)
-          discriminator
-        }
-        addDiscriminatorPropertyToChildren(
-          schema,
-          discriminatorPropertyName,
-          addOnlyToDirectChildren
-        )
+    // in case of recursive ADT, it might already have been processed, thus we should skip
+    val wasAlreadyProcessed = Option(components.getSchemas).map(_.containsKey(name)).getOrElse(false)
 
-      case _ => ()
+    if (wasAlreadyProcessed) {
+      (new Schema).$ref(s"#/components/schemas/$name")
+    } else {
+      val children = classSymbol.knownDirectSubclasses
+      // we can assume that all sum ADT direct children are registered as reference, as these can be:
+      // - case classes = registered as reference
+      // - case objects = registered as reference
+      // - sealed trait/abstract class = registered as reference
+      val childrenRefs = children.map(s => (new Schema).$ref(s.name.toString.trim)).toSeq
+      val schema = new Schema
+      schema.setOneOf(childrenRefs.asJava)
+      val schemaRef = registerAsReference(name, schema)
+      children.map(_.asType.toType).foreach(handleType)
+
+      config.sumADTsShape match {
+        case RegistrationConfig.SumADTsShape.WithDiscriminator(discriminatorPropertyNameFn, addOnlyToDirectChildren) =>
+          val discriminatorPropertyName = discriminatorPropertyNameFn(name)
+          schema.setDiscriminator {
+            val discriminator = new Discriminator
+            discriminator.setPropertyName(discriminatorPropertyName)
+            discriminator
+          }
+          addDiscriminatorPropertyToChildren(
+            schema,
+            discriminatorPropertyName,
+            addOnlyToDirectChildren
+          )
+
+        case _ => ()
+      }
+
+      schemaRef
     }
-
-    registerAsReference(name, schema)
   }
 
   private def handleSimpleType(tpe: Type): Schema[_] = {

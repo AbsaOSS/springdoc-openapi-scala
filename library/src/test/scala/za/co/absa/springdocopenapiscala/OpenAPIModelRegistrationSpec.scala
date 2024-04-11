@@ -135,13 +135,13 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
   private sealed trait NestedSealedTrait
 
   private object NestedSealedTrait {
-    case class NestedSealedTraitVariant1(a: String, b: Int) extends NestedSealedTrait
+    case class NestedSealedTraitVariant1(a: String, b: Int, c: NestedSealedTrait) extends NestedSealedTrait
     case object NestedSealedTraitVariant2 extends NestedSealedTrait
 
     sealed abstract class NestedSealedTraitVariant3 extends NestedSealedTrait
 
     object NestedSealedTraitVariant3 {
-      case class NestedSealedTraitVariant3Subvariant1(a: Float) extends NestedSealedTraitVariant3
+      case class NestedSealedTraitVariant3Subvariant1(a: Float, b: NestedSealedTrait) extends NestedSealedTraitVariant3
       case object NestedSealedTraitVariant3Subvariant2 extends NestedSealedTraitVariant3
     }
 
@@ -393,13 +393,16 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
         schema => {
           val actualProperties = schema.getProperties.asScala
 
-          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a") && actualProperties.contains("b")
+          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a") &&
+            actualProperties.contains("b") &&
+            actualProperties.contains("c") &&
+            actualProperties("c").get$ref === "#/components/schemas/NestedSealedTrait"
           val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitType") && {
             val s = actualProperties("nestedSealedTraitType")
             s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant1")
           }
           val isDiscriminatorPropertyRequired = schema.getRequired.contains("nestedSealedTraitType")
-          val isCountOfPropertiesCorrect = actualProperties.size === 3
+          val isCountOfPropertiesCorrect = actualProperties.size === 4
 
           areNonDiscriminatorPropertiesCorrect &&
           isDiscriminatorPropertyCorrect &&
@@ -451,7 +454,9 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
         schema => {
           val actualProperties = schema.getProperties.asScala
 
-          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a")
+          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a") &&
+            actualProperties.contains("b") &&
+            actualProperties("b").get$ref === "#/components/schemas/NestedSealedTrait"
           val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitVariant3Type") && {
             val s = actualProperties("nestedSealedTraitVariant3Type")
             s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant3Subvariant1")
@@ -463,7 +468,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
           val areDiscriminatorPropertyRequired = schema.getRequired.contains(
             "nestedSealedTraitVariant3Type"
           ) && schema.getRequired.contains("nestedSealedTraitType")
-          val isCountOfPropertiesCorrect = actualProperties.size === 3
+          val isCountOfPropertiesCorrect = actualProperties.size === 4
 
           areNonDiscriminatorPropertiesCorrect &&
           isDiscriminatorPropertyCorrect &&
@@ -543,13 +548,16 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
         schema => {
           val actualProperties = schema.getProperties.asScala
 
-          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a") && actualProperties.contains("b")
+          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a") &&
+            actualProperties.contains("b") &&
+            actualProperties.contains("c") &&
+            actualProperties("c").get$ref === "#/components/schemas/NestedSealedTrait"
           val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitType") && {
             val s = actualProperties("nestedSealedTraitType")
             s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant1")
           }
           val isDiscriminatorPropertyRequired = schema.getRequired.contains("nestedSealedTraitType")
-          val isCountOfPropertiesCorrect = actualProperties.size === 3
+          val isCountOfPropertiesCorrect = actualProperties.size === 4
 
           areNonDiscriminatorPropertiesCorrect &&
           isDiscriminatorPropertyCorrect &&
@@ -601,14 +609,16 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
         schema => {
           val actualProperties = schema.getProperties.asScala
 
-          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a")
+          val areNonDiscriminatorPropertiesCorrect = actualProperties.contains("a") &&
+            actualProperties.contains("b") &&
+            actualProperties("b").get$ref == "#/components/schemas/NestedSealedTrait"
           val isDiscriminatorPropertyCorrect = actualProperties.contains("nestedSealedTraitVariant3Type") && {
             val s = actualProperties("nestedSealedTraitVariant3Type")
             s.getType === "string" && s.getEnum.asScala === Seq("NestedSealedTraitVariant3Subvariant1")
           }
           val isParentDiscriminatorNotInProperties = !actualProperties.contains("nestedSealedTraitType")
           val isDiscriminatorPropertyRequired = schema.getRequired.contains("nestedSealedTraitVariant3Type")
-          val isCountOfPropertiesCorrect = actualProperties.size === 2
+          val isCountOfPropertiesCorrect = actualProperties.size === 3
 
           areNonDiscriminatorPropertiesCorrect &&
           isDiscriminatorPropertyCorrect &&
