@@ -18,7 +18,6 @@ package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.media.Schema
-
 import org.scalatest
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -26,8 +25,9 @@ import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe._
-
 import za.co.absa.springdocopenapiscala.OpenAPIModelRegistration.ExtraTypesHandling
+
+import java.sql.Timestamp
 
 class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
@@ -47,7 +47,10 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     o: Instant,
     p: LocalDateTime,
     r: LocalDate,
-    s: LocalTime
+    s: LocalTime,
+    t: BigDecimal,
+    w: BigInt,
+    z: Timestamp
   )
 
   private case class SimpleTypesMaybeInOption(
@@ -194,6 +197,9 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.p", "string", Some("date-time"))
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.r", "string", Some("date"))
     assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.s", "string", Some("time"))
+    assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.t", "number")
+    assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.w", "integer")
+    assertTypeAndFormatAreAsExpected(actualSchemas, "OnlySimpleTypes.z", "string", Some("date-time"))
   }
 
   it should "mark all non-Option fields of case class as required" in {

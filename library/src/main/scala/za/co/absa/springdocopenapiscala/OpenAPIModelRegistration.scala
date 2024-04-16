@@ -26,6 +26,8 @@ import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe._
 import OpenAPIModelRegistration._
 
+import java.sql.Timestamp
+
 class OpenAPIModelRegistration(
   components: Components,
   extraTypesHandler: ExtraTypesHandling.ExtraTypesHandler = ExtraTypesHandling.noExtraHandling,
@@ -243,6 +245,9 @@ class OpenAPIModelRegistration(
     case t if t =:= typeOf[LocalDateTime] => OpenAPISimpleType("string", Some("date-time"))
     case t if t =:= typeOf[LocalDate]     => OpenAPISimpleType("string", Some("date"))
     case t if t =:= typeOf[LocalTime]     => OpenAPISimpleType("string", Some("time"))
+    case t if t =:= typeOf[Timestamp]     => OpenAPISimpleType("string", Some("date-time"))
+    case t if t =:= typeOf[BigDecimal]    => OpenAPISimpleType("number")
+    case t if t =:= typeOf[BigInt]        => OpenAPISimpleType("integer")
   }
 
   private def registerAsReference(name: String, schema: Schema[_]): Schema[_] = {
