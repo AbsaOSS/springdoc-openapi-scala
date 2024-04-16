@@ -17,7 +17,7 @@
 package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.{Components, OpenAPI}
-import za.co.absa.springdocopenapiscala.OpenAPIModelRegistration.ExtraTypesHandling
+import za.co.absa.springdocopenapiscala.OpenAPIModelRegistration.{ExtraTypesHandling, RegistrationConfig}
 import za.co.absa.springdocopenapiscala.SpringdocOpenAPIVersionSpecificTypes._
 
 /**
@@ -29,12 +29,17 @@ import za.co.absa.springdocopenapiscala.SpringdocOpenAPIVersionSpecificTypes._
  */
 class Bundle(
   extraOpenAPICustomizers: Seq[OpenApiCustomizer] = Seq.empty,
-  extraTypesHandler: ExtraTypesHandling.ExtraTypesHandler = ExtraTypesHandling.noExtraHandling
+  extraTypesHandler: ExtraTypesHandling.ExtraTypesHandler = ExtraTypesHandling.noExtraHandling,
+  registrationConfig: RegistrationConfig = RegistrationConfig()
 ) {
 
   private val components = new Components
 
-  val modelRegistration: OpenAPIModelRegistration = new OpenAPIModelRegistration(components, extraTypesHandler)
+  val modelRegistration: OpenAPIModelRegistration = new OpenAPIModelRegistration(
+    components,
+    extraTypesHandler,
+    registrationConfig
+  )
 
   val customizer: OpenApiCustomizer = {
     val openAPIScalaCustomizer = new OpenAPIScalaCustomizer(components)
