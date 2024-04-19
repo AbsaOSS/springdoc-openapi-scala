@@ -77,13 +77,13 @@ class OpenAPIModelRegistration(
     else
       tpe.dealias match {
         case t if tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isCaseClass => handleCaseType(t)
-        case t if t <:< typeOf[Map[_, _]]                                      => handleMap(t)
-        case t if t <:< typeOf[Option[_]]                                      => handleType(t.typeArgs.head)
-        case t if t <:< typeOf[Seq[_]] || t <:< typeOf[Array[_]]               => handleSeqLike(t)
-        case t if t <:< typeOf[Set[_]]                                         => handleSet(t)
-        case t if t <:< typeOf[Enumeration#Value]                              => handleEnum(t)
-        case t if t.typeSymbol.isClass && t.typeSymbol.asClass.isSealed        => handleSealedType(t)
-        case t                                                                 => handleSimpleType(t)
+        case t if t <:< typeOf[Map[_, _]]                               => handleMap(t.typeArgs(0), t.typeArgs(1))
+        case t if t <:< typeOf[Option[_]]                               => handleType(t.typeArgs.head)
+        case t if t <:< typeOf[Seq[_]] || t <:< typeOf[Array[_]]        => handleSeqLike(t)
+        case t if t <:< typeOf[Set[_]]                                  => handleSet(t)
+        case t if t <:< typeOf[Enumeration#Value]                       => handleEnum(t)
+        case t if t.typeSymbol.isClass && t.typeSymbol.asClass.isSealed => handleSealedType(t)
+        case t                                                          => handleSimpleType(t)
       }
   }
 
@@ -112,10 +112,13 @@ class OpenAPIModelRegistration(
     registerAsReference(name, schema)
   }
 
-  private def handleMap(tpe: Type): Schema[_] = {
-    val schema = new Schema
-    schema.setType("object")
-    schema
+  private def handleMap(keyType: Type, valueType: Type): Schema[_] = keyType match {
+    case _ if keyType <:< typeOf[String] =>
+      val schema = new Schema
+      schema.setType("object")
+      schema.setAdditionalProperties(handleType(valueType))
+      schema
+    case _ => throw new IllegalArgumentException("In OpenAPI 3.0.x Map must have String key type.")
   }
 
   private def handleSeqLike(tpe: Type): Schema[_] = {
