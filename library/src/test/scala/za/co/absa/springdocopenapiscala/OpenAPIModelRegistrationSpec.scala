@@ -80,7 +80,12 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
   private case class Maps(
     a: Map[String, Int],
-    b: Map[Int, Arrays]
+    b: Map[String, Arrays]
+  )
+
+  private case class WrongMaps(
+    a: Map[Int, Int],
+    b: Map[Boolean, Arrays]
   )
 
   private object Things extends Enumeration {
@@ -262,7 +267,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     assertIsArrayOfExpectedType(actualSchemas, "Arrays.h", "integer")
   }
 
-  it should "make Map an OpenAPI object type" in {
+  it should "make Map an OpenAPI object type with value schema as additionalProperties" in {
     val components = new Components
     val openAPIModelRegistration = new OpenAPIModelRegistration(components)
 
@@ -271,7 +276,26 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     val actualSchemas = components.getSchemas
 
     assertTypeAndFormatAreAsExpected(actualSchemas, "Maps.a", "object")
+    assertAdditionalPropertiesAreAsExpected(
+      actualSchemas,
+      "Maps.a",
+      (new Schema).`type`("integer").format("int32")
+    )
     assertTypeAndFormatAreAsExpected(actualSchemas, "Maps.b", "object")
+    assertAdditionalPropertiesAreAsExpected(
+      actualSchemas,
+      "Maps.b",
+      (new Schema).$ref("#/components/schemas/Arrays")
+    )
+  }
+
+  it should "throw IllegalArgumentException if Map has key type different than String" in {
+    val components = new Components
+    val openAPIModelRegistration = new OpenAPIModelRegistration(components)
+
+    intercept[IllegalArgumentException] {
+      openAPIModelRegistration.register[WrongMaps]()
+    }
   }
 
   it should "make simple Enumeration (without renaming) an OpenAPI enum" in {
@@ -803,6 +827,16 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     actualSchemas,
     fieldPath,
     schema => schema.getType === expectedType && Option(schema.getFormat) === expectedFormat
+  )
+
+  private def assertAdditionalPropertiesAreAsExpected(
+    actualSchemas: java.util.Map[String, Schema[_]],
+    fieldPath: String,
+    expectedAdditionalProperties: AnyRef
+  ): scalatest.Assertion = assertPredicateForPath(
+    actualSchemas,
+    fieldPath,
+    schema => Option(schema.getAdditionalProperties).map(_ === expectedAdditionalProperties).getOrElse(false)
   )
 
   private def assertRefIsAsExpected(
