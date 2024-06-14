@@ -254,7 +254,9 @@ class OpenAPIModelRegistration(
   }
 
   private def registerAsReference(name: String, schema: Schema[_]): Schema[_] = {
-    components.addSchemas(name, schema)
+    if (!Option(components.getSchemas).exists(_.containsKey(name))) {
+      components.addSchemas(name, schema)
+    }
     val schemaReference = new Schema
     schemaReference.set$ref(s"#/components/schemas/$name")
     schemaReference

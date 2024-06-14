@@ -143,6 +143,8 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
 
   private sealed trait NestedSealedTrait
 
+  private case class NestedSealedTraitBreaker(breaker: NestedSealedTrait.NestedSealedTraitVariant1)
+
   private object NestedSealedTrait {
     case class NestedSealedTraitVariant1(a: String, b: Int, c: NestedSealedTrait) extends NestedSealedTrait
     case object NestedSealedTraitVariant2 extends NestedSealedTrait
@@ -396,6 +398,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
       )
 
       openAPIModelRegistration.register[NestedSealedTrait]()
+      openAPIModelRegistration.register[NestedSealedTraitBreaker]()
 
       val actualSchemas = components.getSchemas
 
@@ -534,6 +537,13 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
           isCountOfPropertiesCorrect &&
           areDiscriminatorPropertyRequired
         }
+      )
+
+      assertTypeAndFormatAreAsExpected(actualSchemas, "NestedSealedTraitBreaker", "object")
+      assertRefIsAsExpected(
+        actualSchemas,
+        "NestedSealedTraitBreaker.breaker",
+        "#/components/schemas/NestedSealedTraitVariant1"
       )
     }
 
