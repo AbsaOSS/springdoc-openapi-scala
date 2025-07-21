@@ -27,7 +27,7 @@ object Dependencies {
 
     def springdocOpenapi(majorVersion: Int): String = majorVersion match {
       case 1 => "[1.6.7,1.7.0]"
-      case 2 => "[2.0.0,2.3.0]"
+      case 2 => "[2.0.0,2.8.9]"
     }
   }
 

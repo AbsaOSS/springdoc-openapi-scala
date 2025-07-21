@@ -32,7 +32,7 @@ The library has springdoc-openapi as a provided dependency,
 thus users of the library have to include that dependency in their projects:
 - for springdoc-openapi 1.x versions `1.6.7` up to `1.7.0` (including) of 
 `"org.springdoc" % "springdoc-openapi-webmvc-core"` are supported
-- for springdoc-openapi 2.x versions `2.0.0` up to `2.3.0` (including) of
+- for springdoc-openapi 2.x versions `2.0.0` up to `2.8.9` (including) of
 `"org.springdoc" % "springdoc-openapi-starter-webmvc-api"` are supported
 
 ### Add library dependency to SBT/Maven
