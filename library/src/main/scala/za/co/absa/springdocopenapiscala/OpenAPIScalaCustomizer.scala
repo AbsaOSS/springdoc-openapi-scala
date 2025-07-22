@@ -38,13 +38,6 @@ class OpenAPIScalaCustomizer(components: Components) extends OpenApiCustomizer {
 
     // Replace the root by copying properties from the new OpenAPI object
     openAPIOutOfSync.setComponents(newOpenAPI.getComponents)
-    openAPIOutOfSync.setPaths(newOpenAPI.getPaths)
-    openAPIOutOfSync.setInfo(newOpenAPI.getInfo)
-    openAPIOutOfSync.setServers(newOpenAPI.getServers)
-    openAPIOutOfSync.setSecurity(newOpenAPI.getSecurity)
-    openAPIOutOfSync.setTags(newOpenAPI.getTags)
-    openAPIOutOfSync.setExternalDocs(newOpenAPI.getExternalDocs)
-    openAPIOutOfSync.setExtensions(newOpenAPI.getExtensions)
   }
 
   private def fixResponsesReturningUnit(openAPI: OpenAPI): Unit = {
