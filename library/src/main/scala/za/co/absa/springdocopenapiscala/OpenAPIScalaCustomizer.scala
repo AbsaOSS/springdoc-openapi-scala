@@ -25,19 +25,18 @@ import scala.collection.JavaConverters._
 class OpenAPIScalaCustomizer(components: Components) extends OpenApiCustomizer {
 
   override def customise(openAPIOutOfSync: OpenAPI): Unit = {
-    // this is needed as for some reason springdoc-openapi cache the `OpenAPI` at the beginning
-    // and newly added `Components` are not taken into account on JSON/YAML generation
-    openAPIOutOfSync.setComponents(components)
+    // Serialize the customized Components object to a JSON string.
+    val jsonRepresentation = Json.pretty(components)
+
+    // Deserialize the JSON string back into a new Components object to iron out any issues.
+    val newComponents = Json.mapper().readValue(jsonRepresentation, classOf[Components])
+
+    // Finally replace the Components object in the OpenAPI instance.
+    // This is needed as for some reason springdoc-openapi cache the `OpenAPI` at the beginning
+    // and newly added `Components` are not taken into account on JSON/YAML generation.
+    openAPIOutOfSync.setComponents(newComponents)
 
     fixResponsesReturningUnit(openAPIOutOfSync)
-
-    val jsonRepresentation = Json.pretty(openAPIOutOfSync)
-
-    // Deserialize the JSON string back into a new OpenAPI object
-    val newOpenAPI = Json.mapper().readValue(jsonRepresentation, classOf[OpenAPI])
-
-    // Replace the root by copying properties from the new OpenAPI object
-    openAPIOutOfSync.setComponents(newOpenAPI.getComponents)
   }
 
   private def fixResponsesReturningUnit(openAPI: OpenAPI): Unit = {
