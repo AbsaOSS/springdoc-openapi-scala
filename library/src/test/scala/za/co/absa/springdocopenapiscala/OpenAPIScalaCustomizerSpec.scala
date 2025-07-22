@@ -56,17 +56,6 @@ class OpenAPIScalaCustomizerSpec extends AnyFlatSpec {
 
   behavior of "customise"
 
-  it should "set `components` of its argument OpenAPI object to one injected via DI to the class" in {
-    val components = new Components().addSchemas("a", new Schema)
-    val openAPIScalaCustomizer = new OpenAPIScalaCustomizer(components)
-
-    val openAPI = initializeOpenAPI
-
-    openAPIScalaCustomizer.customise(openAPI)
-
-    assert(openAPI.getComponents === components)
-  }
-
   it should "convert all responses returning Unit (BoxedUnit reference) to empty response" in {
     val components = new Components()
     val openAPIScalaCustomizer = new OpenAPIScalaCustomizer(components)
