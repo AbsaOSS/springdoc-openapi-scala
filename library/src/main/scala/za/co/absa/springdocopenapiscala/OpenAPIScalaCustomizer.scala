@@ -24,8 +24,8 @@ import scala.collection.JavaConverters._
 class OpenAPIScalaCustomizer(components: Components) extends OpenApiCustomizer {
 
   override def customise(openAPIOutOfSync: OpenAPI): Unit = {
-    // This is needed as for some reason springdoc-openapi cache the `OpenAPI` at the beginning
-    // and newly added `Components` are not taken into account on JSON/YAML generation.
+    // this is needed as for some reason springdoc-openapi cache the `OpenAPI` at the beginning
+    // and newly added `Components` are not taken into account on JSON/YAML generation
     openAPIOutOfSync.setComponents(components)
 
     fixResponsesReturningUnit(openAPIOutOfSync)
