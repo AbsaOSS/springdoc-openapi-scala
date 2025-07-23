@@ -272,7 +272,9 @@ class OpenAPIModelRegistration(
     case t if t =:= typeOf[BigDecimal] =>
       new NumberSchema()
     case t if t =:= typeOf[BigInt] =>
-      new IntegerSchema()
+      val s = new IntegerSchema()
+      s.setFormat(null)
+      s
   }
 
   private def registerAsReference(name: String, schema: Schema[_]): Schema[_] = {
