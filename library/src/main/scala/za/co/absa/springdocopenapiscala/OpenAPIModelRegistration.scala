@@ -192,7 +192,7 @@ class OpenAPIModelRegistration(
       // - case objects = registered as reference
       // - sealed trait/abstract class = registered as reference
       val childrenRefs = children.map(s => (new Schema).$ref(s.name.toString.trim)).toSeq
-      val schema = new ObjectSchema
+      val schema = new Schema
       schema.setOneOf(childrenRefs.asJava)
       val schemaRef = registerAsReference(name, schema)
       children.map(_.asType.toType).foreach(handleType)
