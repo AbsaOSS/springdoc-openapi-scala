@@ -17,7 +17,7 @@
 package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.Components
-import io.swagger.v3.oas.models.media.{Discriminator, Schema}
+import io.swagger.v3.oas.models.media.{ArraySchema, BooleanSchema, Discriminator, IntegerSchema, NumberSchema, ObjectSchema, Schema, StringSchema, UUIDSchema}
 
 import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.UUID
@@ -27,6 +27,7 @@ import scala.reflect.runtime.universe._
 import OpenAPIModelRegistration._
 
 import java.sql.Timestamp
+import scala.collection.Seq
 
 class OpenAPIModelRegistration(
   components: Components,
@@ -69,8 +70,6 @@ class OpenAPIModelRegistration(
     handleType(tpe)
   }
 
-  private case class OpenAPISimpleType(tpe: String, format: Option[String] = None)
-
   @tailrec
   private def handleType(tpe: Type): Schema[_] = {
     if (extraTypesHandler.isDefinedAt(tpe)) handleExtraTypes(tpe)
@@ -96,8 +95,7 @@ class OpenAPIModelRegistration(
 
   private def handleCaseType(tpe: Type): Schema[_] = {
     val name = tpe.typeSymbol.name.toString.trim
-    val schema = new Schema
-    schema.setType("object")
+    val schema = new ObjectSchema
     val fields = tpe.decls.collect {
       case field: TermSymbol if field.isVal => field
     }
@@ -114,17 +112,15 @@ class OpenAPIModelRegistration(
 
   private def handleMap(keyType: Type, valueType: Type): Schema[_] = keyType match {
     case _ if keyType <:< typeOf[String] =>
-      val schema = new Schema
-      schema.setType("object")
+      val schema = new ObjectSchema
       schema.setAdditionalProperties(handleType(valueType))
       schema
     case _ => throw new IllegalArgumentException("In OpenAPI 3.0.x Map must have String key type.")
   }
 
   private def handleSeqLike(tpe: Type): Schema[_] = {
-    val schema = new Schema
+    val schema = new ArraySchema
     val innerSchema = handleType(tpe.typeArgs.head)
-    schema.setType("array")
     schema.setItems(innerSchema)
     schema
   }
@@ -139,8 +135,7 @@ class OpenAPIModelRegistration(
     val enumValues = parentObjectType.members.filter(isSymbolEnumerationValue)
     val enumValuesAsStrings = enumValues.map(_.name.toString.trim)
 
-    val schema = new Schema[String]
-    schema.setType("string")
+    val schema = new StringSchema
     schema.setEnum(enumValuesAsStrings.toList.asJava)
     schema
   }
@@ -197,7 +192,7 @@ class OpenAPIModelRegistration(
       // - case objects = registered as reference
       // - sealed trait/abstract class = registered as reference
       val childrenRefs = children.map(s => (new Schema).$ref(s.name.toString.trim)).toSeq
-      val schema = new Schema
+      val schema = new ObjectSchema
       schema.setOneOf(childrenRefs.asJava)
       val schemaRef = registerAsReference(name, schema)
       children.map(_.asType.toType).foreach(handleType)
@@ -223,34 +218,61 @@ class OpenAPIModelRegistration(
     }
   }
 
-  private def handleSimpleType(tpe: Type): Schema[_] = {
-    val schema = new Schema
-    val OpenAPISimpleType(terminalTpe, format) = getOpenAPISimpleType(tpe)
-    schema.setType(terminalTpe)
-    format.foreach(f => schema.setFormat(f))
-    schema
-  }
-
-  private def getOpenAPISimpleType(tpe: Type): OpenAPISimpleType = tpe.dealias match {
-    case t if t =:= typeOf[Byte]          => OpenAPISimpleType("integer", Some("int32"))
-    case t if t =:= typeOf[Short]         => OpenAPISimpleType("integer", Some("int32"))
-    case t if t =:= typeOf[Int]           => OpenAPISimpleType("integer", Some("int32"))
-    case t if t =:= typeOf[Long]          => OpenAPISimpleType("integer", Some("int64"))
-    case t if t =:= typeOf[Float]         => OpenAPISimpleType("number", Some("float"))
-    case t if t =:= typeOf[Double]        => OpenAPISimpleType("number", Some("double"))
-    case t if t =:= typeOf[Char]          => OpenAPISimpleType("string")
-    case t if t =:= typeOf[String]        => OpenAPISimpleType("string")
-    case t if t =:= typeOf[UUID]          => OpenAPISimpleType("string", Some("uuid"))
-    case t if t =:= typeOf[Boolean]       => OpenAPISimpleType("boolean")
-    case t if t =:= typeOf[Unit]          => OpenAPISimpleType("null")
-    case t if t =:= typeOf[ZonedDateTime] => OpenAPISimpleType("string", Some("date-time"))
-    case t if t =:= typeOf[Instant]       => OpenAPISimpleType("string", Some("date-time"))
-    case t if t =:= typeOf[LocalDateTime] => OpenAPISimpleType("string", Some("date-time"))
-    case t if t =:= typeOf[LocalDate]     => OpenAPISimpleType("string", Some("date"))
-    case t if t =:= typeOf[LocalTime]     => OpenAPISimpleType("string", Some("time"))
-    case t if t =:= typeOf[Timestamp]     => OpenAPISimpleType("string", Some("date-time"))
-    case t if t =:= typeOf[BigDecimal]    => OpenAPISimpleType("number")
-    case t if t =:= typeOf[BigInt]        => OpenAPISimpleType("integer")
+  private def handleSimpleType(tpe: Type): Schema[_] = tpe.dealias match {
+    case t if t =:= typeOf[Byte] =>
+      val s = new IntegerSchema()
+      s.setFormat("int32")
+      s
+    case t if t =:= typeOf[Short] =>
+      val s = new IntegerSchema()
+      s.setFormat("int32")
+      s
+    case t if t =:= typeOf[Int] =>
+      val s = new IntegerSchema()
+      s.setFormat("int32")
+      s
+    case t if t =:= typeOf[Long] =>
+      val s = new IntegerSchema()
+      s.setFormat("int64")
+      s
+    case t if t =:= typeOf[Float] =>
+      val s = new NumberSchema()
+      s.setFormat("float")
+      s
+    case t if t =:= typeOf[Double] =>
+      val s = new NumberSchema()
+      s.setFormat("double")
+      s
+    case t if t =:= typeOf[Char] =>
+      new StringSchema()
+    case t if t =:= typeOf[String] =>
+      new StringSchema()
+    case t if t =:= typeOf[UUID] =>
+      val s = new UUIDSchema()
+      s.setFormat("uuid")
+      s
+    case t if t =:= typeOf[Boolean] =>
+      new BooleanSchema()
+    case t if t =:= typeOf[Unit] =>
+      val s = new Schema[Unit]()
+      s.setType("null")
+      s
+    case t if t =:= typeOf[ZonedDateTime] || t =:= typeOf[Instant] || t =:= typeOf[LocalDateTime] || t =:= typeOf[Timestamp] =>
+      val s = new StringSchema()
+      s.setFormat("date-time")
+      s
+    case t if t =:= typeOf[LocalDate] =>
+      val s = new StringSchema()
+      s.setFormat("date")
+      s
+    case t if t =:= typeOf[LocalTime] =>
+      val s = new StringSchema()
+      s.setFormat("time")
+      s
+    case t if t =:= typeOf[BigDecimal] =>
+      new NumberSchema()
+    case t if t =:= typeOf[BigInt] =>
+      new IntegerSchema()
   }
 
   private def registerAsReference(name: String, schema: Schema[_]): Schema[_] = {

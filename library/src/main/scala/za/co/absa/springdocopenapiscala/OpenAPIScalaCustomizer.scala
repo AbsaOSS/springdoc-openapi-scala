@@ -16,7 +16,6 @@
 
 package za.co.absa.springdocopenapiscala
 
-import io.swagger.v3.core.util.Json
 import io.swagger.v3.oas.models.{Components, OpenAPI}
 import za.co.absa.springdocopenapiscala.SpringdocOpenAPIVersionSpecificTypes.OpenApiCustomizer
 
@@ -25,16 +24,9 @@ import scala.collection.JavaConverters._
 class OpenAPIScalaCustomizer(components: Components) extends OpenApiCustomizer {
 
   override def customise(openAPIOutOfSync: OpenAPI): Unit = {
-    // Serialize the customized Components object to a JSON string.
-    val jsonRepresentation = Json.pretty(components)
-
-    // Deserialize the JSON string back into a new Components object to iron out any issues.
-    val newComponents = Json.mapper().readValue(jsonRepresentation, classOf[Components])
-
-    // Finally replace the Components object in the OpenAPI instance.
     // This is needed as for some reason springdoc-openapi cache the `OpenAPI` at the beginning
     // and newly added `Components` are not taken into account on JSON/YAML generation.
-    openAPIOutOfSync.setComponents(newComponents)
+    openAPIOutOfSync.setComponents(components)
 
     fixResponsesReturningUnit(openAPIOutOfSync)
   }
