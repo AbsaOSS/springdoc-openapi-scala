@@ -17,7 +17,7 @@
 package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.Components
-import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.media.{IntegerSchema, Schema}
 import org.scalatest
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -281,7 +281,7 @@ class OpenAPIModelRegistrationSpec extends AnyFlatSpec {
     assertAdditionalPropertiesAreAsExpected(
       actualSchemas,
       "Maps.a",
-      (new Schema).`type`("integer").format("int32")
+      new IntegerSchema()
     )
     assertTypeAndFormatAreAsExpected(actualSchemas, "Maps.b", "object")
     assertAdditionalPropertiesAreAsExpected(

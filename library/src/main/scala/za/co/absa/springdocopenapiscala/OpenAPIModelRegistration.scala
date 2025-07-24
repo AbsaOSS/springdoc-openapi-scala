@@ -17,7 +17,7 @@
 package za.co.absa.springdocopenapiscala
 
 import io.swagger.v3.oas.models.Components
-import io.swagger.v3.oas.models.media.{Discriminator, Schema}
+import io.swagger.v3.oas.models.media.{ArraySchema, BooleanSchema, Discriminator, IntegerSchema, NumberSchema, ObjectSchema, Schema, StringSchema, UUIDSchema}
 
 import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.UUID
@@ -27,6 +27,7 @@ import scala.reflect.runtime.universe._
 import OpenAPIModelRegistration._
 
 import java.sql.Timestamp
+import scala.collection.Seq
 
 class OpenAPIModelRegistration(
   components: Components,
@@ -69,7 +70,7 @@ class OpenAPIModelRegistration(
     handleType(tpe)
   }
 
-  private case class OpenAPISimpleType(tpe: String, format: Option[String] = None)
+  private case class OpenAPISimpleType(schema: Schema[_], format: Option[String] = None, _type: Option[String] = None)
 
   @tailrec
   private def handleType(tpe: Type): Schema[_] = {
@@ -96,8 +97,7 @@ class OpenAPIModelRegistration(
 
   private def handleCaseType(tpe: Type): Schema[_] = {
     val name = tpe.typeSymbol.name.toString.trim
-    val schema = new Schema
-    schema.setType("object")
+    val schema = new ObjectSchema
     val fields = tpe.decls.collect {
       case field: TermSymbol if field.isVal => field
     }
@@ -114,17 +114,15 @@ class OpenAPIModelRegistration(
 
   private def handleMap(keyType: Type, valueType: Type): Schema[_] = keyType match {
     case _ if keyType <:< typeOf[String] =>
-      val schema = new Schema
-      schema.setType("object")
+      val schema = new ObjectSchema
       schema.setAdditionalProperties(handleType(valueType))
       schema
     case _ => throw new IllegalArgumentException("In OpenAPI 3.0.x Map must have String key type.")
   }
 
   private def handleSeqLike(tpe: Type): Schema[_] = {
-    val schema = new Schema
+    val schema = new ArraySchema
     val innerSchema = handleType(tpe.typeArgs.head)
-    schema.setType("array")
     schema.setItems(innerSchema)
     schema
   }
@@ -139,8 +137,7 @@ class OpenAPIModelRegistration(
     val enumValues = parentObjectType.members.filter(isSymbolEnumerationValue)
     val enumValuesAsStrings = enumValues.map(_.name.toString.trim)
 
-    val schema = new Schema[String]
-    schema.setType("string")
+    val schema = new StringSchema
     schema.setEnum(enumValuesAsStrings.toList.asJava)
     schema
   }
@@ -224,33 +221,39 @@ class OpenAPIModelRegistration(
   }
 
   private def handleSimpleType(tpe: Type): Schema[_] = {
-    val schema = new Schema
-    val OpenAPISimpleType(terminalTpe, format) = getOpenAPISimpleType(tpe)
-    schema.setType(terminalTpe)
-    format.foreach(f => schema.setFormat(f))
-    schema
+    val simpleType = getOpenAPISimpleType(tpe)
+    simpleType.format.foreach(simpleType.schema.setFormat)
+    simpleType._type.foreach(simpleType.schema.setType)
+    simpleType.schema
   }
 
   private def getOpenAPISimpleType(tpe: Type): OpenAPISimpleType = tpe.dealias match {
-    case t if t =:= typeOf[Byte]          => OpenAPISimpleType("integer", Some("int32"))
-    case t if t =:= typeOf[Short]         => OpenAPISimpleType("integer", Some("int32"))
-    case t if t =:= typeOf[Int]           => OpenAPISimpleType("integer", Some("int32"))
-    case t if t =:= typeOf[Long]          => OpenAPISimpleType("integer", Some("int64"))
-    case t if t =:= typeOf[Float]         => OpenAPISimpleType("number", Some("float"))
-    case t if t =:= typeOf[Double]        => OpenAPISimpleType("number", Some("double"))
-    case t if t =:= typeOf[Char]          => OpenAPISimpleType("string")
-    case t if t =:= typeOf[String]        => OpenAPISimpleType("string")
-    case t if t =:= typeOf[UUID]          => OpenAPISimpleType("string", Some("uuid"))
-    case t if t =:= typeOf[Boolean]       => OpenAPISimpleType("boolean")
-    case t if t =:= typeOf[Unit]          => OpenAPISimpleType("null")
-    case t if t =:= typeOf[ZonedDateTime] => OpenAPISimpleType("string", Some("date-time"))
-    case t if t =:= typeOf[Instant]       => OpenAPISimpleType("string", Some("date-time"))
-    case t if t =:= typeOf[LocalDateTime] => OpenAPISimpleType("string", Some("date-time"))
-    case t if t =:= typeOf[LocalDate]     => OpenAPISimpleType("string", Some("date"))
-    case t if t =:= typeOf[LocalTime]     => OpenAPISimpleType("string", Some("time"))
-    case t if t =:= typeOf[Timestamp]     => OpenAPISimpleType("string", Some("date-time"))
-    case t if t =:= typeOf[BigDecimal]    => OpenAPISimpleType("number")
-    case t if t =:= typeOf[BigInt]        => OpenAPISimpleType("integer")
+    case t if t =:= typeOf[Byte] || t =:= typeOf[Short] || t =:= typeOf[Int] =>
+      OpenAPISimpleType(new IntegerSchema())
+    case t if t =:= typeOf[Long] =>
+      OpenAPISimpleType(new IntegerSchema(), Some("int64"))
+    case t if t =:= typeOf[Float] =>
+      OpenAPISimpleType(new NumberSchema(), Some("float"))
+    case t if t =:= typeOf[Double] =>
+      OpenAPISimpleType(new NumberSchema(), Some("double"))
+    case t if t =:= typeOf[Char] || t =:= typeOf[String] =>
+      OpenAPISimpleType(new StringSchema())
+    case t if t =:= typeOf[UUID] =>
+      OpenAPISimpleType(new UUIDSchema())
+    case t if t =:= typeOf[Boolean] =>
+      OpenAPISimpleType(new BooleanSchema())
+    case t if t =:= typeOf[Unit] =>
+      OpenAPISimpleType(new Schema, None, Some("null"))
+    case t if t =:= typeOf[ZonedDateTime] || t =:= typeOf[Instant] || t =:= typeOf[LocalDateTime] || t =:= typeOf[Timestamp] =>
+      OpenAPISimpleType(new StringSchema(), Some("date-time"))
+    case t if t =:= typeOf[LocalDate] =>
+      OpenAPISimpleType(new StringSchema(), Some("date"))
+    case t if t =:= typeOf[LocalTime] =>
+      OpenAPISimpleType(new StringSchema(), Some("time"))
+    case t if t =:= typeOf[BigDecimal] =>
+      OpenAPISimpleType(new NumberSchema())
+    case t if t =:= typeOf[BigInt] =>
+      OpenAPISimpleType(new IntegerSchema(), Some(null))
   }
 
   private def registerAsReference(name: String, schema: Schema[_]): Schema[_] = {
