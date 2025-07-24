@@ -243,7 +243,7 @@ class OpenAPIModelRegistration(
     case t if t =:= typeOf[Boolean] =>
       OpenAPISimpleType(new BooleanSchema())
     case t if t =:= typeOf[Unit] =>
-      OpenAPISimpleType(new Schema[Unit](), None, Some("null"))
+      OpenAPISimpleType(new Schema, None, Some("null"))
     case t if t =:= typeOf[ZonedDateTime] || t =:= typeOf[Instant] || t =:= typeOf[LocalDateTime] || t =:= typeOf[Timestamp] =>
       OpenAPISimpleType(new StringSchema(), Some("date-time"))
     case t if t =:= typeOf[LocalDate] =>
