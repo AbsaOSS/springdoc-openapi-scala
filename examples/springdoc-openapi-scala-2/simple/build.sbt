@@ -16,7 +16,7 @@
 
 ThisBuild / scalaVersion := "2.12.18"
 
-lazy val `springdoc-openapi-scala-2-version`: String = ??? // specify version of the library
+lazy val `springdoc-openapi-scala-2-version`: String = ??? // specify version of the library, for example "0.2.0"
 
 lazy val root = (project in file("."))
   .settings(
