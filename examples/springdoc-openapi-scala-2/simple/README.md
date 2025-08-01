@@ -14,6 +14,9 @@ To run the application with hot-reload enabled:
 
 ```bash
 cd springdoc-openapi-scala/examples/springdoc-openapi-scala-2/simple
+```suggestion
+cd springdoc-openapi-scala/examples/springdoc-openapi-scala-2/simple
+sed -i '' 's/`springdoc-openapi-scala-2-version`: String = \?\?\?/`springdoc-openapi-scala-2-version`: String = "0.3.2"/g' build.sbt # Omit '' after the -i flag if not on mac
 sbt compile
 sbt "~reStart"
 ```
