@@ -19,7 +19,7 @@ package za.co.absa.springdocopenapiscala.examples.simple
 import com.fasterxml.jackson.databind.JsonNode
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
-import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.media.StringSchema
 import org.springdoc.core.customizers.OpenApiCustomiser
 import org.springframework.context.annotation.{Bean, Configuration}
 import za.co.absa.springdocopenapiscala.{Bundle, OpenAPIModelRegistration}
@@ -39,8 +39,7 @@ class OpenAPIConfiguration {
     ),
     OpenAPIModelRegistration.ExtraTypesHandling.simpleMapping {
       case t if t =:= typeOf[JsonNode] =>
-        val schema = new Schema
-        schema.setType("string")
+        val schema = new StringSchema
         schema.setFormat("json")
         schema
     }

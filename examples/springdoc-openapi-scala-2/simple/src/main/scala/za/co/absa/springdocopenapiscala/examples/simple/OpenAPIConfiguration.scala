@@ -18,7 +18,7 @@ package za.co.absa.springdocopenapiscala.examples.simple
 
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
-import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.media.StringSchema
 import org.springdoc.core.customizers.OpenApiCustomizer
 import org.springframework.context.annotation.{Bean, Configuration}
 import play.api.libs.json.JsValue
@@ -40,8 +40,7 @@ class OpenAPIConfiguration {
     ),
     OpenAPIModelRegistration.ExtraTypesHandling.simpleMapping {
       case t if t =:= typeOf[JsValue] =>
-        val schema = new Schema
-        schema.setType("string")
+        val schema = new StringSchema
         schema.setFormat("json")
         schema
     }
