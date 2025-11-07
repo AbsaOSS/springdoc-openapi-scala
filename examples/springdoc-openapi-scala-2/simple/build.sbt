@@ -22,8 +22,8 @@ lazy val root = (project in file("."))
   .settings(
     libraryDependencies ++= Seq(
       "za.co.absa" %% "springdoc-openapi-scala-2" % `springdoc-openapi-scala-2-version`,
-      "org.springdoc" % "springdoc-openapi-starter-webmvc-api" % "2.8.9",
-      "org.springframework.boot" % "spring-boot-starter-web" % "3.4.3",
+      "org.springdoc" % "springdoc-openapi-starter-webmvc-api" % "2.8.14",
+      "org.springframework.boot" % "spring-boot-starter-web" % "3.5.7",
       "org.playframework" %% "play-json" % "3.0.1"
     ),
     webappWebInfClasses := true,
